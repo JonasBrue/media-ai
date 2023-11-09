@@ -36,35 +36,20 @@ def audio_from_youtube_video(url):
         raise
 
 
-def text_from_audio(path_to_audio, model):
-    model = whisper.load_model(model)  # Load a Whisper model
+def text_from_audio(path_to_audio, model, device):
+    model = whisper.load_model(model, device=device)  # Load a Whisper model
 
-    # try to transcribe
-    # result = model.transcribe(path_to_audio, fp16=False)
-    # print(result)
-
-    # load audio and pad/trim it to fit 30 seconds
-    audio = whisper.load_audio(mp3)
-    audio = whisper.pad_or_trim(audio)
-
-    # make log-Mel spectrogram and move to the same device as the model
-    mel = whisper.log_mel_spectrogram(audio).to(model.device)
-
-    # detect the spoken language
-    _, probs = model.detect_language(mel)
-    language = max(probs, key=probs.get)
-    print(f"Detected language: {language}")
-
-    # decode the audio
-    options = whisper.DecodingOptions(fp16=False)
-    result = whisper.decode(model, mel, options)
-
-    return result.text
+    result = model.transcribe(path_to_audio)
+    return result["text"]
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    mp3 = audio_from_youtube_video("")  # Insert Youtube video link
-    txt = text_from_audio(mp3, "base")  # Model: tiny, base, small, medium or large
+    mp3 = audio_from_youtube_video("")
+    # Url: Insert Youtube video link
+
+    txt = text_from_audio(mp3, "base", "cuda")
+    # Model: tiny, base, small, medium or large
+    # Device: "cuda" to use the graphics card or "cpu" to use the processor
 
     print(txt)
