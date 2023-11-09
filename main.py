@@ -12,7 +12,7 @@ def audio_from_youtube_video(url):
         path_to_audio = path_to_storage + yt.video_id + ".mp3"
 
         if os.path.exists(path_to_audio):  # Check if the mp3 is already downloaded.
-            print("File already exists at: " + path_to_audio)
+            print("Audio-File already exists at: " + path_to_audio)
             return path_to_audio
 
         stream = yt.streams.filter(only_audio=True, file_extension="mp4").last()  # Find a stream that only has audio
@@ -37,10 +37,26 @@ def audio_from_youtube_video(url):
 
 
 def text_from_audio(path_to_audio, model, device):
-    model = whisper.load_model(model, device=device)  # Load a Whisper model
+    try:
+        path_to_text = path_to_audio.replace(".mp3", ".txt")
 
-    result = model.transcribe(path_to_audio)
-    return result["text"]
+        if os.path.exists(path_to_text):  # Check if the txt is already created.
+            print("Text-File already exists at: " + path_to_text)
+            return path_to_text
+
+        print("Starting to transcribe, please wait...")
+        model = whisper.load_model(model, device=device)  # Load a Whisper model
+        result = model.transcribe(path_to_audio)  # Transcribe audio
+        print("Transcription successful.")
+
+        file = open(path_to_text, "w")
+        file.write(result["text"])
+        file.close()
+        print("Saved to txt at: " + path_to_text)
+        return path_to_text
+    except:
+        print("Transcription failed.")
+        raise
 
 
 # Press the green button in the gutter to run the script.
