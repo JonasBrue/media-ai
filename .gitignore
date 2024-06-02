@@ -1,0 +1,4 @@
+# .gitignore
+media-ai-venv/
+*.mp3
+*.txt
