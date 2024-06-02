@@ -1,5 +1,4 @@
 from pytube import YouTube
-from openai import OpenAI
 import pytube.exceptions
 import urllib.error
 import os
@@ -9,7 +8,7 @@ import whisper
 def audio_from_youtube_video(url):
     try:
         yt = YouTube(url)  # A YouTube object with the url of the video to be downloaded.
-        path_to_storage = "./temp/"
+        path_to_storage = "storage/"
         path_to_audio = path_to_storage + yt.video_id + "-audio.mp3"
 
         if os.path.exists(path_to_audio):  # Check if the audio is already downloaded.
@@ -42,7 +41,7 @@ def text_from_audio(path_to_audio, model, device):
         path_to_text = path_to_audio.replace("-audio.mp3", "-transcription.txt")
 
         if os.path.exists(path_to_text):  # Check if the transcription is already created.
-            print("Text-File already exists at: " + path_to_text)
+            print("Transcription-File already exists at: " + path_to_text)
             return path_to_text
 
         print("Starting to transcribe, please wait...")
