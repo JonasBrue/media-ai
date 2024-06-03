@@ -1,3 +1,4 @@
+import torch
 from pytube import YouTube
 import pytube.exceptions
 import urllib.error
@@ -36,7 +37,7 @@ def audio_from_youtube_video(url):
         raise
 
 
-def text_from_audio(path_to_audio, model, device):
+def text_from_audio(path_to_audio, model):
     try:
         path_to_text = path_to_audio.replace("-audio.mp3", "-transcription.txt")
 
@@ -45,6 +46,12 @@ def text_from_audio(path_to_audio, model, device):
             return path_to_text
 
         print("Starting to transcribe, please wait...")
+        # Load the whisper model
+        if torch.cuda.is_available():
+            device = "cuda"
+        else:
+            device = "cpu"
+            print("CUDA device not available. Using CPU instead.")
         model = whisper.load_model(model, device=device)  # Load a Whisper model
         result = model.transcribe(path_to_audio)  # Transcribe audio
         print("Transcription successful.")
@@ -98,7 +105,7 @@ if __name__ == '__main__':
     mp3 = audio_from_youtube_video("https://www.youtube.com/watch?v=bIgg91Mqd-k")
     # url: Insert Youtube video link
 
-    txt = text_from_audio(mp3, "base", "cuda")
+    txt = text_from_audio(mp3, "base")
     # path_to_audio: mp3 file
     # model: tiny, base, small, medium or large
     # device: "cuda" to use the graphics card or "cpu" to use the processor

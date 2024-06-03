@@ -6,7 +6,7 @@ A brief description of the project goes here.
 
 - Windows 10 or higher
 - Python 3.8 or higher
-- `pip`
+- [ffmpeg](https://ffmpeg.org/)
 
 ## Setup
 
