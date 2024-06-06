@@ -25,10 +25,8 @@ class ChatBot:
         logging.info("Session started with new transcript.")
 
     def chat(self, prompt):
-        print(prompt)
         with self.session:
             prompt = f"Vorlesung Transkript: {self.transcript_text}\n\nStudent Frage: {prompt}\nDeine Antwort: "
             response = self.chatbot.generate(prompt=prompt)
-            print(response)
             logging.info("Replied to user's input.")
             return response
