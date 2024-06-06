@@ -1,4 +1,4 @@
-from transformers import pipeline
+from gpt4all import GPT4All
 import json
 import os
 import logging
@@ -6,43 +6,40 @@ import logging
 
 class ChatBot:
 
-    def __init__(self, path_to_transcript):
-        """
-        Initializes the ChatBot instance.
-
-        Parameters:
-        path_to_transcript (str): The path to the transcript file.
-        """
-        self.path_to_storage = "./storage/"
-        self.path_to_transcript = path_to_transcript
-        self.path_to_summary = path_to_transcript.replace("-transcript.json", "-summary.txt")
+    def __init__(self):
+        logging.info("Module: Chatbot starting...")
+        model = "em_german_mistral_v01.Q4_0.gguf"
+        self.chatbot = GPT4All(model_name=model)
         logging.info("Module: Chatbot initialized.")
 
-    def summarize(self):
+    def summarize(self, path_to_transcript):
         """
-        Summarize the transcript file if it doesn't already exist.
+        Summarize the transcript file.
 
         Returns:
         str: The path to the summary  file.
         """
-        if os.path.exists(self.path_to_summary):
-            logging.info("Summary-File already exists at: " + self.path_to_summary)
-            return self.path_to_summary
+        path_to_chat = path_to_transcript.replace("-transcript.json", "-chat.json")
+        if os.path.exists(path_to_chat):
+            logging.info("Chat-File already exists at: " + path_to_chat)
+            return path_to_chat
 
         # Read the transcript file
-        with open(self.path_to_transcript, 'r', encoding='utf-8') as file:
+        with open(path_to_transcript, 'r', encoding='utf-8') as file:
             transcript_text = json.load(file)
 
         try:
-            logging.info("Starting to summerize, please wait...")
-            summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
-            summary = summarizer(transcript_text['text'], max_length=150, min_length=30, do_sample=False)[0]['summary_text']
+            logging.info("Starting to summarize, please wait...")
+            cmd = "Ich habe eine Frage zum folgendem Transkript eines Videos. Hier ist das Transkript: " + transcript_text["text"] + "Transkript Ende. Von welchem Kanal kommt dieses Video?"
+            with self.chatbot.chat_session():
+                response1 = self.chatbot.generate(prompt=cmd)
+                print(self.chatbot.current_chat_session)
             logging.info("Summary created.")
-            t = open(self.path_to_summary, "w")
-            t.write(summary)
-            t.close()
-            logging.info("Saved to txt file at: " + self.path_to_summary)
-            return self.path_to_summary
+
+            with open(path_to_chat, 'w', encoding='utf-8') as file:
+                json.dump(response1, file, ensure_ascii=False, indent=4)
+            logging.info("Saved to txt file at: " + path_to_chat)
+            return path_to_chat
         except:
             logging.error("Summary failed.")
             raise
