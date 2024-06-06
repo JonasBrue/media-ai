@@ -8,7 +8,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - [%
 
 if __name__ == '__main__':
     url = "https://www.youtube.com/watch?v=UQLcm8Zw8DM"
-    path_to_audio = YouTubeDownloader(url).download()
+    path_to_audio = YouTubeDownloader().download(url)
     path_to_transcript = AutomaticSpeechRecognition().transcribe(path_to_audio)
     userinput = "Sag mir in einem Satz worum es in diesem Video/Transkript geht."
-    path_to_summary = ChatBot(path_to_transcript).chat(userinput)
+    chatbot = ChatBot()
+    chatbot.load(path_to_transcript)
+    chatbot.chat(userinput)
+

@@ -6,32 +6,32 @@ import logging
 
 class YouTubeDownloader:
 
-    def __init__(self, url):
+    def __init__(self):
         logging.info("Starting ...")
-
-        try:
-            self.yt = pytube.YouTube(url)
-        except pytube.exceptions.RegexMatchError:
-            logging.error("Incorrect input.")
-            raise
-        self.path_to_storage = "./storage/"
-        self.path_to_audio = self.path_to_storage + self.yt.video_id + "-audio.mp3"
 
         logging.info("Started.")
 
-    def download(self):
+    def download(self, url):
         logging.info("Downloading ...")
 
-        if os.path.exists(self.path_to_audio):
-            logging.info("Audio-File already exists at: " + self.path_to_audio)
-            return self.path_to_audio
+        try:
+            yt = pytube.YouTube(url)
+        except pytube.exceptions.RegexMatchError:
+            logging.error("Incorrect input.")
+            raise
+        path_to_storage = "./storage/"
+        path_to_audio = path_to_storage + yt.video_id + "-audio.mp3"
+
+        if os.path.exists(path_to_audio):
+            logging.info("Audio-File already exists at: " + path_to_audio)
+            return path_to_audio
 
         try:
             logging.info("Looking for the video on youtube ...")
-            stream = self.yt.streams.filter(only_audio=True, file_extension="mp4").last()
-            logging.info("Found video: '" + self.yt.title + "' by '" + self.yt.author + "'")
+            stream = yt.streams.filter(only_audio=True, file_extension="mp4").last()
+            logging.info("Found video: '" + yt.title + "' by '" + yt.author + "'")
             logging.info("Starting to download ...")
-            download = stream.download(output_path=self.path_to_storage)
+            download = stream.download(output_path=path_to_storage)
             logging.info("Download successful.")
         except urllib.error.URLError:
             logging.error("No internet connection.")
@@ -40,6 +40,6 @@ class YouTubeDownloader:
             logging.error("Video Unavailable.")
             raise
 
-        os.rename(download, self.path_to_audio)  # Turn the mp4 file into a mp3 file
-        logging.info("Converted to mp3 file at: " + self.path_to_audio)
-        return self.path_to_audio
+        os.rename(download, path_to_audio)  # Turn the mp4 file into a mp3 file
+        logging.info("Converted to mp3 file at: " + path_to_audio)
+        return path_to_audio
