@@ -8,7 +8,8 @@ import logging
 class AutomaticSpeechRecognition:
 
     def __init__(self):
-        logging.info("Module: AutomaticSpeechRecognition starting...")
+        logging.info("Starting ...")
+
         if torch.cuda.is_available():
             device = "cuda"
             logging.info("CUDA device is available. Using GPU.")
@@ -16,22 +17,17 @@ class AutomaticSpeechRecognition:
             device = "cpu"
             logging.info("CUDA device not available. Using CPU.")
         self.whisper = whisper.load_model(name="base", device=device)  # available: tiny, base, small, medium or large
-        logging.info("Module: AutomaticSpeechRecognition initialized.")
+
+        logging.info("Started.")
 
     def transcribe(self, path_to_audio):
-        """
-        Transcribes the audio file.
-
-        Returns:
-        str: The path to the transcript file.
-        """
+        logging.info("Transcribing ...")
         path_to_transcript = path_to_audio.replace("-audio.mp3", "-transcript.json")
         if os.path.exists(path_to_transcript):
             logging.info("Transcript-File already exists at: " + path_to_transcript)
             return path_to_transcript
 
         try:
-            logging.info("Starting to transcribe, please wait...")
             result = self.whisper.transcribe(path_to_audio, fp16=False)
             logging.info("Transcription successful.")
 
