@@ -1,3 +1,4 @@
 # .gitignore
 media-ai-venv/
 storage/
+keys/
