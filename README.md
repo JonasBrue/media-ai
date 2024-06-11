@@ -12,7 +12,7 @@ A brief description of the project goes here.
 
 Follow these steps to set up the project on your local machine:
 
-__1. Clone the repository:__
+__1. Clone and open the repository:__
 
 ```bash
 git clone https://github.com/JonasBrue/media-ai.git

@@ -61,7 +61,7 @@ def download_youtube_video(url):
 
     try:
         logging.info("Looking for the video on youtube ...")
-        stream = yt.streams.filter(only_audio=True, file_extension="mp4").get_highest_resolution()
+        stream = yt.streams.filter(progressive=True, file_extension="mp4").get_highest_resolution()
         logging.info("Found video: '" + yt.title + "' by '" + yt.author + "'")
         logging.info("Starting to download ...")
         download = stream.download(output_path=path_to_storage)
