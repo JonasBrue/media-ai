@@ -2,23 +2,31 @@ from openai import OpenAI
 import json
 import os
 import logging
+from dotenv import load_dotenv
+from backend.utils import convert_to_audio, extract_video_frames, log_api_response
 
-from utils import convert_to_audio, extract_video_frames, log_api_response
+# Load environment variables from .env file
+load_dotenv()
 
 
 class API:
 
     def __init__(self):
-        key = open("../keys/openai-api-key.txt", "r")
-        self.client = OpenAI(api_key=key.readline())
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            raise Exception("API key not found. Set the OPENAI_API_KEY environment variable.")
+        self.client = OpenAI(api_key=api_key)
         self.model_chatbot = "gpt-4o"
         self.model_transcriber = "whisper-1"
-        self.chat_history = []
         self.file_path = ""
+        self.chat_history = []
+        self.video_frames = []
         logging.info("Started.")
 
-    def clear_chat_history(self):
+    def reset_cache(self):
+        self.file_path = ""
         self.chat_history = []
+        self.video_frames = []
         logging.info("Chat history cleared.")
 
     def get_chat_history(self):
@@ -79,7 +87,8 @@ class API:
         if use_video:
             if not os.path.exists(self.file_path + ".mp4"):
                 raise Exception("Video is not available.")
-            video_frames = extract_video_frames(use_video, frame_interval_in_seconds)
+            if not self.video_frames:
+                self.video_frames = extract_video_frames(self.file_path + ".mp4", frame_interval_in_seconds)
             user_message['content'].append({
                 "type": "text",
                 "text": "Dies sind die Bilder aus dem Video."
@@ -91,7 +100,7 @@ class API:
                         "url": f'data:image/jpg;base64,{frame}',
                         "detail": "low"
                     }
-                } for frame in video_frames
+                } for frame in self.video_frames
             ])
 
         if user_input:
@@ -113,17 +122,3 @@ class API:
         self.chat_history.append({"role": "assistant", "content": f"{assistant_response}"})
         logging.info("Responding successful.")
         return assistant_response
-
-
-# Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - [%(module)s] %(message)s')
-
-# Testing
-if __name__ == '__main__':
-    api = API()
-    transMP4 = api.transcribe("../storage/kapitalismus.mp4")
-    print(api.chat("Worum geht es in der Vorlesung?", use_transcript=True))
-    print(api.chat("Warum wird der Kapitalismus laut der Vorlesung heute stark kritisiert?", use_transcript=True))
-    print(api.chat("Was waren meine vorherigen Fragen? Gib sie exakt weider."))
-    print(api.get_chat_history())
-

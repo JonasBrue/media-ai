@@ -1,6 +1,6 @@
-from backend.ytdownloader import YouTubeDownloader
-from backend.asr import AutomaticSpeechRecognition
-from backend.chatbot import ChatBot
+from backend.legacy.ytdownloader import YouTubeDownloader
+from backend.legacy.asr import AutomaticSpeechRecognition
+from backend.legacy.chatbot import ChatBot
 
 
 class Model:

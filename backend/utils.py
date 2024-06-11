@@ -53,7 +53,7 @@ def download_youtube_video(url):
     except RegexMatchError:
         raise Exception("Incorrect input.")
 
-    path_to_storage = "../storage/"
+    path_to_storage = "./storage/"
     path_to_video = path_to_storage + "youtube-" + yt.video_id + ".mp4"
     if os.path.exists(path_to_video):
         logging.info("Operation done before. File already exists at: " + path_to_video)
@@ -136,7 +136,7 @@ def log_api_response(completion):
             'total_tokens': completion.usage.total_tokens
         }
     }
-    path_to_log = "../storage/api-response-" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".json"
+    path_to_log = "./storage/api-response-" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".json"
     with open(path_to_log, 'w', encoding='utf-8') as file:
         json.dump(completion_data, file, ensure_ascii=False, indent=4)
     logging.info("Saved api response at: " + path_to_log)

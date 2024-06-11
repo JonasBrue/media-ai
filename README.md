@@ -45,7 +45,12 @@ __4. Install the dependencies:__
 pip install -r requirements.txt
 ```
 
-__5. Execute the script:__
+__5. Set the environment variables:__
+
+Edit the .env file and add your API key.
+OPENAI_API_KEY=your_openai_api_key_here
+
+__6. Execute the script:__
 
 ```bash
 python main.py
