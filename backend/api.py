@@ -1,39 +1,38 @@
 from openai import OpenAI
-from moviepy.editor import AudioFileClip
-import datetime
 import json
 import os
 import logging
+
+from utils import convert_to_audio, extract_video_frames, log_api_response
 
 
 class API:
 
     def __init__(self):
-        logging.info("Starting ...")
         key = open("../keys/openai-api-key.txt", "r")
         self.client = OpenAI(api_key=key.readline())
         self.model_chatbot = "gpt-4o"
         self.model_transcriber = "whisper-1"
+        self.chat_history = []
+        self.file_path = ""
         logging.info("Started.")
 
-    def convert_to_audio(self, path_to_video):
-        logging.info("Converting video to audio ...")
+    def clear_chat_history(self):
+        self.chat_history = []
+        logging.info("Chat history cleared.")
 
-        path_to_audio = path_to_video.replace("-video.mp4", "-audio.mp3")
-        if os.path.exists(path_to_audio):
-            logging.info("Operation done before. File already exists at: " + path_to_audio)
-        else:
-            video = AudioFileClip(path_to_video)
-            video.write_audiofile(path_to_audio)
-            video.close()
-            logging.info("Converting successful.")
+    def get_chat_history(self):
+        return self.chat_history
 
-        return path_to_audio
+    def transcribe(self, video_input):
+        """
+        Transcribes a given video file or YouTube video.
+        """
+        logging.info("Transcribing ...")
+        path_to_audio = convert_to_audio(video_input)
+        self.file_path, _ = os.path.splitext(path_to_audio)
 
-    def transcribe(self, path_to_audio):
-        logging.info("Transcribing the audio ...")
-
-        path_to_transcript = path_to_audio.replace("-audio.mp3", "-transcript.json")
+        path_to_transcript = self.file_path + ".json"
         if os.path.exists(path_to_transcript):
             logging.info("Operation done before. File already exists at: " + path_to_transcript)
         else:
@@ -56,26 +55,65 @@ class API:
 
         return path_to_transcript
 
-    def chat(self, userinput, path_to_transcript):
+    def chat(self, user_input, use_transcript=False, use_video=False, frame_interval_in_seconds=10):
         logging.info("Responding to user input ...")
 
-        with open(path_to_transcript, 'r', encoding='utf-8') as file:
-            transcript = json.load(file)
+        messages = [{"role": "system", "content": "Sie beantworten Fragen von Studenten zu Vorlesungen."}]
 
-        completion = self.client.chat.completions.create(
+        if self.chat_history:
+            messages.extend(self.chat_history)
+
+        user_message = {"role": "user", "content": []}
+
+        if use_transcript:
+            if not os.path.exists(self.file_path + ".json"):
+                raise Exception("Transcript is not available.")
+            with open(self.file_path + ".json", 'r', encoding='utf-8') as file:
+                transcript = json.load(file)
+            transcript_text = transcript['text']
+            user_message['content'].append({
+                "type": "text",
+                "text": f"Die Audiotranskription der Vorlesung ist: {transcript_text}"
+            })
+
+        if use_video:
+            if not os.path.exists(self.file_path + ".mp4"):
+                raise Exception("Video is not available.")
+            video_frames = extract_video_frames(use_video, frame_interval_in_seconds)
+            user_message['content'].append({
+                "type": "text",
+                "text": "Dies sind die Bilder aus dem Video."
+            })
+            user_message['content'].extend([
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f'data:image/jpg;base64,{frame}',
+                        "detail": "low"
+                    }
+                } for frame in video_frames
+            ])
+
+        if user_input:
+            user_message['content'].append({
+                "type": "text",
+                "text": f"{user_input}"
+            })
+
+        messages.append(user_message)
+
+        response = self.client.chat.completions.create(
             model=self.model_chatbot,
-            messages=[
-                {"role": "system", "content": """Sie beantworten Fragen von Studenten zu Vorlesungen. Die Audiotranskription wird bereitgestellt."""},
-                {"role": "user", "content": [
-                    {"type": "text", "text": f"Die Audiotranskription ist: {transcript['text']} \n\n\n {userinput}"}
-                    ]
-                }
-            ],
+            messages=messages,
             temperature=0,
         )
-        log_api_response(completion)
+        log_api_response(response)
+        assistant_response = response.choices[0].message.content
+        self.chat_history.append({"role": "user", "content": f"{user_input}"})
+        self.chat_history.append({"role": "assistant", "content": f"{assistant_response}"})
         logging.info("Responding successful.")
-        return completion.choices[0].message.content
+        return assistant_response
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - [%(module)s] %(message)s')
@@ -83,39 +121,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - [%
 # Testing
 if __name__ == '__main__':
     api = API()
-    audio = api.convert_to_audio("..\storage\k-video.mp4")
-    transcript = api.transcribe(audio)
-    response = api.chat("Worum geht es in dieser Vorlesung?", transcript)
-    print(response)
+    transMP4 = api.transcribe("../storage/kapitalismus.mp4")
+    print(api.chat("Worum geht es in der Vorlesung?", use_transcript=True))
+    print(api.chat("Warum wird der Kapitalismus laut der Vorlesung heute stark kritisiert?", use_transcript=True))
+    print(api.chat("Was waren meine vorherigen Fragen? Gib sie exakt weider."))
+    print(api.get_chat_history())
 
-
-# Helper
-def log_api_response(completion):
-    completion_data = {
-        'id': completion.id,
-        'choices': [
-            {
-                'finish_reason': choice.finish_reason,
-                'index': choice.index,
-                'logprobs': choice.logprobs,
-                'message': {
-                    'content': choice.message.content,
-                    'role': choice.message.role,
-                    'function_call': choice.message.function_call,
-                    'tool_calls': choice.message.tool_calls
-                }
-            } for choice in completion.choices
-        ],
-        'created': completion.created,
-        'model': completion.model,
-        'object': completion.object,
-        'system_fingerprint': completion.system_fingerprint,
-        'usage': {
-            'completion_tokens': completion.usage.completion_tokens,
-            'prompt_tokens': completion.usage.prompt_tokens,
-            'total_tokens': completion.usage.total_tokens
-        }
-    }
-    path_to_log = "../storage/api-" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".json"
-    with open(path_to_log, 'w', encoding='utf-8') as file:
-        json.dump(completion_data, file, ensure_ascii=False, indent=4)
