@@ -66,13 +66,13 @@ class API:
     def chat(self, user_input, use_transcript=False, use_video=False, frame_interval_in_seconds=10):
         logging.info("Responding to user input ...")
 
-        messages = [{"role": "system", "content": "Sie beantworten Fragen von Studenten zu Vorlesungen."}]
-
+        messages = [{"role": "system", "content": "Sie sind ein hilfreicher Assistent, der Fragen von Studenten zu Vorlesungen beantwortet. "
+                                                  "Ihnen können Bilder und ein Transkript der Vorlesung zur Verfügung gestellt werden. "
+                                                  "Bitte geben Sie präzise und verständliche Antworten, die den Studenten helfen, die Inhalte der Vorlesung besser zu verstehen."}]
         if self.chat_history:
             messages.extend(self.chat_history)
 
         user_message = {"role": "user", "content": []}
-
         if use_transcript:
             if not os.path.exists(self.file_path + ".json"):
                 raise Exception("Transcript is not available.")
@@ -83,7 +83,6 @@ class API:
                 "type": "text",
                 "text": f"Die Audiotranskription der Vorlesung ist: {transcript_text}"
             })
-
         if use_video:
             if not os.path.exists(self.file_path + ".mp4"):
                 raise Exception("Video is not available.")
@@ -102,13 +101,11 @@ class API:
                     }
                 } for frame in self.video_frames
             ])
-
         if user_input:
             user_message['content'].append({
                 "type": "text",
                 "text": f"{user_input}"
             })
-
         messages.append(user_message)
 
         response = self.client.chat.completions.create(
