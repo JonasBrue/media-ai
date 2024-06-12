@@ -3,21 +3,20 @@ import json
 import os
 import logging
 from dotenv import load_dotenv
-from backend.utils import convert_to_audio, extract_video_frames, log_api_response
-
-# Load environment variables from .env file
-load_dotenv()
+from backend.utils import convert_to_audio, convert_seconds_to_hms, extract_video_frames, log_api_response
 
 
 class API:
+    MODEL_CHATBOT = "gpt-4o"
+    MODEL_TRANSCRIBER = "whisper-1"
+    FRAME_INTERVAL_IN_SECONDS = 10
 
     def __init__(self):
+        load_dotenv()
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
             raise Exception("API key not found. Set the OPENAI_API_KEY environment variable.")
         self.client = OpenAI(api_key=api_key)
-        self.model_chatbot = "gpt-4o"
-        self.model_transcriber = "whisper-1"
         self.file_path = ""
         self.chat_history = []
         self.video_frames = []
@@ -46,7 +45,7 @@ class API:
         else:
             transcript_response = self.client.audio.transcriptions.create(
                 file=open(path_to_audio, "rb"),
-                model=self.model_transcriber,
+                model=API.MODEL_TRANSCRIBER,
                 response_format="verbose_json",
                 timestamp_granularities=["segment"]
             )
@@ -63,7 +62,7 @@ class API:
 
         return path_to_transcript
 
-    def chat(self, user_input, use_transcript=False, use_video=False, frame_interval_in_seconds=10):
+    def chat(self, user_input, use_transcript=False, use_video=False):
         logging.info("Responding to user input ...")
 
         messages = [{"role": "system", "content": "Sie sind ein hilfreicher Assistent, der Fragen von Studenten zu "
@@ -78,7 +77,7 @@ class API:
         if use_transcript:
             self._add_transcript_to_context(user_message)
         if use_video:
-            self._add_video_to_context(user_message, frame_interval_in_seconds)
+            self._add_video_to_context(user_message, API.FRAME_INTERVAL_IN_SECONDS)
         if user_input:
             user_message['content'].append({
                 "type": "text",
@@ -87,7 +86,7 @@ class API:
         messages.append(user_message)
 
         response = self.client.chat.completions.create(
-            model=self.model_chatbot,
+            model=API.MODEL_CHATBOT,
             messages=messages,
             temperature=0,
         )
@@ -106,8 +105,8 @@ class API:
         transcript_segments = transcript['segments']
         transcript_formatted = ""
         for segment in transcript_segments:
-            start_time = segment['start']
-            end_time = segment['end']
+            start_time = convert_seconds_to_hms(segment['start'])
+            end_time = convert_seconds_to_hms(segment['end'])
             text = segment['text']
             transcript_formatted += f"[{start_time} - {end_time}] {text}\n"
         user_message['content'].append({

@@ -76,6 +76,18 @@ def download_youtube_video(url):
     return path_to_video
 
 
+def convert_seconds_to_hms(seconds):
+    """
+    Converts seconds to a string in HH:MM:SS or MM:SS format without milliseconds.
+    """
+    total_seconds = round(seconds)
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    if hours > 0:
+        return f"{hours}:{minutes:02}:{seconds:02}"
+    else:
+        return f"{minutes}:{seconds:02}"
+
 def extract_video_frames(path_to_video, interval_seconds):
     """
     Extracts frames from a video at specified intervals and encodes them to base64.
