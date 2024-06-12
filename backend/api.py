@@ -66,41 +66,19 @@ class API:
     def chat(self, user_input, use_transcript=False, use_video=False, frame_interval_in_seconds=10):
         logging.info("Responding to user input ...")
 
-        messages = [{"role": "system", "content": "Sie sind ein hilfreicher Assistent, der Fragen von Studenten zu Vorlesungen beantwortet. "
-                                                  "Ihnen können Bilder und ein Transkript der Vorlesung zur Verfügung gestellt werden. "
-                                                  "Bitte geben Sie präzise und verständliche Antworten, die den Studenten helfen, die Inhalte der Vorlesung besser zu verstehen."}]
+        messages = [{"role": "system", "content": "Sie sind ein hilfreicher Assistent, der Fragen von Studenten zu "
+                                                  "Vorlesungen beantwortet. Ihnen können Bilder und ein Transkript "
+                                                  "der Vorlesung zur Verfügung gestellt werden. "
+                                                  "Bitte geben Sie präzise und verständliche Antworten, die den "
+                                                  "Studenten helfen, die Inhalte der Vorlesung besser zu verstehen."}]
         if self.chat_history:
             messages.extend(self.chat_history)
 
         user_message = {"role": "user", "content": []}
         if use_transcript:
-            if not os.path.exists(self.file_path + ".json"):
-                raise Exception("Transcript is not available.")
-            with open(self.file_path + ".json", 'r', encoding='utf-8') as file:
-                transcript = json.load(file)
-            transcript_text = transcript['text']
-            user_message['content'].append({
-                "type": "text",
-                "text": f"Die Audiotranskription der Vorlesung ist: {transcript_text}"
-            })
+            self._add_transcript_to_context(user_message)
         if use_video:
-            if not os.path.exists(self.file_path + ".mp4"):
-                raise Exception("Video is not available.")
-            if not self.video_frames:
-                self.video_frames = extract_video_frames(self.file_path + ".mp4", frame_interval_in_seconds)
-            user_message['content'].append({
-                "type": "text",
-                "text": "Dies sind die Bilder aus dem Video."
-            })
-            user_message['content'].extend([
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f'data:image/jpg;base64,{frame}',
-                        "detail": "low"
-                    }
-                } for frame in self.video_frames
-            ])
+            self._add_video_to_context(user_message, frame_interval_in_seconds)
         if user_input:
             user_message['content'].append({
                 "type": "text",
@@ -119,3 +97,35 @@ class API:
         self.chat_history.append({"role": "assistant", "content": f"{assistant_response}"})
         logging.info("Responding successful.")
         return assistant_response
+
+    def _add_transcript_to_context(self, user_message):
+        if not os.path.exists(self.file_path + ".json"):
+            raise Exception("Transcript is not available.")
+        with open(self.file_path + ".json", 'r', encoding='utf-8') as file:
+            transcript = json.load(file)
+        transcript_segments = transcript['segments']
+        transcript_formatted = ""
+        for segment in transcript_segments:
+            start_time = segment['start']
+            end_time = segment['end']
+            text = segment['text']
+            transcript_formatted += f"[{start_time} - {end_time}] {text}\n"
+        user_message['content'].append({
+            "type": "text",
+            "text": f"Die Audiotranskription der Vorlesung ist: \n{transcript_formatted}"
+        })
+
+    def _add_video_to_context(self, user_message, frame_interval_in_seconds):
+        if not os.path.exists(self.file_path + ".mp4"):
+            raise Exception("Video is not available.")
+        if not self.video_frames:
+            self.video_frames = extract_video_frames(self.file_path + ".mp4", frame_interval_in_seconds)
+        user_message['content'].extend([
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f'data:image/jpg;base64,{frame}',
+                    "detail": "low"
+                }
+            } for frame in self.video_frames
+        ])
