@@ -1,22 +1,27 @@
-from backend.legacy.ytdownloader import YouTubeDownloader
-from backend.legacy.asr import AutomaticSpeechRecognition
-from backend.legacy.chatbot import ChatBot
+from backend.api import API
 
 
 class Model:
+    """
+    The Model class handles the data logic and interacts with the API.
+    """
     def __init__(self):
-        self.ytdownloader = YouTubeDownloader()
-        self.asr = AutomaticSpeechRecognition()
-        self.chatbot = ChatBot()
+        self.api = API()
 
-    def download(self, url):
-        return self.ytdownloader.download(url)
+    def transcribe(self, video_input):
+        """
+        Transcribe audio from video input
+        """
+        return self.api.transcribe(video_input)
 
-    def transcribe(self, path_to_audio):
-        return self.asr.transcribe(path_to_audio)
+    def chat(self, user_input, use_transcript, use_video):
+        """
+        Generate a chat response to the users input, optionally including the transcript and video.
+        """
+        return self.api.chat(user_input, use_transcript, use_video)
 
-    def load(self, path_to_transcript):
-        self.chatbot.load(path_to_transcript)
-
-    def chat(self, prompt):
-        return self.chatbot.chat(prompt)
+    def clear_chat(self):
+        """
+        Clear the chat history
+        """
+        self.api.clear_chat()

@@ -1,4 +1,5 @@
 # .gitignore
+log/
 media-ai-venv/
 storage/
 .env

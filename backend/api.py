@@ -12,34 +12,30 @@ class API:
     FRAME_INTERVAL_IN_SECONDS = 10
 
     def __init__(self):
+        """
+        Loading environment variables and setting up the OpenAI client.
+        """
         load_dotenv()
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
             raise Exception("API key not found. Set the OPENAI_API_KEY environment variable.")
         self.client = OpenAI(api_key=api_key)
-        self.file_path = ""
         self.chat_history = []
-        self.video_frames = []
+        self.current_path = ""
+        self.video_frames_map = {}
         logging.info("Started.")
-
-    def reset_cache(self):
-        self.file_path = ""
-        self.chat_history = []
-        self.video_frames = []
-        logging.info("Chat history cleared.")
-
-    def get_chat_history(self):
-        return self.chat_history
 
     def transcribe(self, video_input):
         """
-        Transcribes a given video file or YouTube video.
+        Transcribes the audio from a given video input.
+        Converts video to audio and then transcribes the audio.
+        Returns the path to the transcript JSON file.
         """
         logging.info("Transcribing ...")
         path_to_audio = convert_to_audio(video_input)
-        self.file_path, _ = os.path.splitext(path_to_audio)
+        self.current_path, _ = os.path.splitext(path_to_audio)
 
-        path_to_transcript = self.file_path + ".json"
+        path_to_transcript = self.current_path + ".json"
         if os.path.exists(path_to_transcript):
             logging.info("Operation done before. File already exists at: " + path_to_transcript)
         else:
@@ -62,7 +58,11 @@ class API:
 
         return path_to_transcript
 
-    def chat(self, user_input, use_transcript=False, use_video=False):
+    def chat(self, user_input, use_transcript, use_video):
+        """
+        Generates a chat response based on user input.
+        Optionally including the transcript and video frames.
+        """
         logging.info("Responding to user input ...")
 
         messages = [{"role": "system", "content": "Sie sind ein hilfreicher Assistent, der Fragen von Studenten zu "
@@ -77,7 +77,7 @@ class API:
         if use_transcript:
             self._add_transcript_to_context(user_message)
         if use_video:
-            self._add_video_to_context(user_message, API.FRAME_INTERVAL_IN_SECONDS)
+            self._add_video_to_context(user_message)
         if user_input:
             user_message['content'].append({
                 "type": "text",
@@ -97,10 +97,17 @@ class API:
         logging.info("Responding successful.")
         return assistant_response
 
+    def clear_chat(self):
+        self.chat_history = []
+        logging.info("Chat history cleared.")
+
     def _add_transcript_to_context(self, user_message):
-        if not os.path.exists(self.file_path + ".json"):
+        """
+        Adds the formatted transcript of the audio to the context of the user message.
+        """
+        if not os.path.exists(self.current_path + ".json"):
             raise Exception("Transcript is not available.")
-        with open(self.file_path + ".json", 'r', encoding='utf-8') as file:
+        with open(self.current_path + ".json", 'r', encoding='utf-8') as file:
             transcript = json.load(file)
         transcript_segments = transcript['segments']
         transcript_formatted = ""
@@ -114,11 +121,14 @@ class API:
             "text": f"Die Audiotranskription der Vorlesung ist: \n{transcript_formatted}"
         })
 
-    def _add_video_to_context(self, user_message, frame_interval_in_seconds):
-        if not os.path.exists(self.file_path + ".mp4"):
+    def _add_video_to_context(self, user_message):
+        """
+        Adds encoded video frames to the context of the user message and saves them in a map.
+        """
+        if not os.path.exists(self.current_path + ".mp4"):
             raise Exception("Video is not available.")
-        if not self.video_frames:
-            self.video_frames = extract_video_frames(self.file_path + ".mp4", frame_interval_in_seconds)
+        if self.current_path not in self.video_frames_map:
+            self.video_frames_map[self.current_path] = extract_video_frames(self.current_path + ".mp4", API.FRAME_INTERVAL_IN_SECONDS)
         user_message['content'].extend([
             {
                 "type": "image_url",
@@ -126,5 +136,5 @@ class API:
                     "url": f'data:image/jpg;base64,{frame}',
                     "detail": "low"
                 }
-            } for frame in self.video_frames
+            } for frame in self.video_frames_map[self.current_path]
         ])

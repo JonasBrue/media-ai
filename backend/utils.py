@@ -88,6 +88,7 @@ def convert_seconds_to_hms(seconds):
     else:
         return f"{minutes}:{seconds:02}"
 
+
 def extract_video_frames(path_to_video, interval_seconds):
     """
     Extracts frames from a video at specified intervals and encodes them to base64.
@@ -148,7 +149,7 @@ def log_api_response(completion):
             'total_tokens': completion.usage.total_tokens
         }
     }
-    path_to_log = "./storage/log/api-response-" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".json"
+    path_to_log = "./log/api-response-" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".json"
     with open(path_to_log, 'w', encoding='utf-8') as file:
         json.dump(completion_data, file, ensure_ascii=False, indent=4)
     logging.info("Saved api response at: " + path_to_log)
