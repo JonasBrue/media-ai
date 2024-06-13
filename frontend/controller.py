@@ -37,6 +37,8 @@ class Controller:
         except Exception as e:
             messagebox.showerror("Fehler", str(e))
         finally:
+            costs = self.model.calculate_costs()
+            self.view.display_api_usage_costs(costs)
             self.view.toggle_button_state()
 
     def send_message(self):
@@ -65,6 +67,8 @@ class Controller:
             messagebox.showerror("Fehler", str(e))
             self.view.display_message("Bot: Fehler, versuchs nochmal.")
         finally:
+            costs = self.model.calculate_costs()
+            self.view.display_api_usage_costs(costs)
             self.view.toggle_button_state()
 
     def clear_chat(self):

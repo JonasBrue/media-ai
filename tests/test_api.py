@@ -27,6 +27,7 @@ class TestAPI(unittest.TestCase):
         m_response = MagicMock()
         m_client = MagicMock()
         m_client.audio.transcriptions.create.return_value = m_response
+        m_response.duration = 1
         api_instance = API()
         api_instance.client = m_client
 
@@ -36,6 +37,7 @@ class TestAPI(unittest.TestCase):
         m_client.audio.transcriptions.create.assert_called_once()
         m_open.assert_any_call("path/to/ABC.json", "w", encoding="utf-8")
         m_dump.assert_called_once()
+        self.assertEqual(api_instance.transcriber_total_duration_in_seconds, 1)
 
     @patch("backend.api.API._add_transcript_to_context")
     @patch("backend.api.API._add_video_to_context")
@@ -45,6 +47,8 @@ class TestAPI(unittest.TestCase):
         m_client = MagicMock()
         m_client.chat.completions.create.return_value = m_response
         m_response.choices[0].message.content = "assistant_response_text"
+        m_response.usage.completion_tokens = 1
+        m_response.usage.prompt_tokens = 2
         api_instance = API()
         api_instance.client = m_client
         api_instance.chat_history = [{"role": "system", "content": "hey"}]
@@ -58,12 +62,28 @@ class TestAPI(unittest.TestCase):
         self.assertIn({"role": "system", "content": "hey"}, api_instance.chat_history)
         self.assertIn({"role": "user", "content": "user_input"}, api_instance.chat_history)
         self.assertIn({"role": "assistant", "content": "assistant_response_text"}, api_instance.chat_history)
+        self.assertEqual(api_instance.chatbot_output_tokens_used, 1)
+        self.assertEqual(api_instance.chatbot_input_tokens_used, 2)
 
     def test_clear_chat(self):
         api_instance = API()
         api_instance.chat_history = [{"role": "user", "content": "hey"}]
+
         api_instance.clear_chat()
         self.assertEqual(api_instance.chat_history, [])
+
+    def test_calculate_costs(self):
+        api_instance = API()
+        api_instance.chatbot_input_tokens_used = 10
+        api_instance.chatbot_output_tokens_used = 20
+        api_instance.transcriber_total_duration_in_seconds = 30
+        expected_cost_input = 10 * (5 / 1000000)
+        expected_cost_output = 20 * (15 / 1000000)
+        expected_cost_transcription = 30 * (0.006 / 60)
+        expected_total_cost = expected_cost_input + expected_cost_output + expected_cost_transcription
+
+        result = api_instance.calculate_costs()
+        self.assertEqual(result, expected_total_cost)
 
     @patch("os.path.exists")
     @patch("backend.api.open")

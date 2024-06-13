@@ -77,6 +77,10 @@ class View(ThemedTk):
         self.clear_chat_button = ttk.Button(self.message_frame, text="Chat leeren")
         self.clear_chat_button.grid(row=1, column=4, padx=10, pady=10)
 
+        # Costs display
+        self.costs_label = ttk.Label(self.message_frame, text="Kosten in dieser Sitzung: $0.00", font=self.font)
+        self.costs_label.grid(row=2, column=0, columnspan=5, padx=10, pady=10)
+
     def set_placeholder_text(self, entry, placeholder):
         """
         Sets a placeholder in the given entry widget.
@@ -142,3 +146,9 @@ class View(ThemedTk):
         call_api_buttons = [self.analyse_video_button, self.send_message_button, self.clear_chat_button]
         for button in call_api_buttons:
             button.config(state=self.button_state)
+
+    def display_api_usage_costs(self, costs):
+        """
+        Displays the API usage costs in the costs label.
+        """
+        self.costs_label.config(text=f"Kosten in dieser Sitzung: ${costs:.2f}")

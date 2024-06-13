@@ -20,6 +20,9 @@ class API:
         if not api_key:
             raise Exception("API key not found. Set the OPENAI_API_KEY environment variable.")
         self.client = OpenAI(api_key=api_key)
+        self.chatbot_output_tokens_used = 0
+        self.chatbot_input_tokens_used = 0
+        self.transcriber_total_duration_in_seconds = 0
         self.chat_history = []
         self.current_path = ""
         self.video_frames_map = {}
@@ -54,6 +57,7 @@ class API:
             }
             with open(path_to_transcript, 'w', encoding='utf-8') as file:
                 json.dump(transcript_data, file, ensure_ascii=False, indent=4)
+            self.transcriber_total_duration_in_seconds += transcript_response.duration
             logging.info("Transcribing successful.")
 
         return path_to_transcript
@@ -94,12 +98,21 @@ class API:
         assistant_response = response.choices[0].message.content
         self.chat_history.append({"role": "user", "content": f"{user_input}"})
         self.chat_history.append({"role": "assistant", "content": f"{assistant_response}"})
+        self.chatbot_output_tokens_used += response.usage.completion_tokens
+        self.chatbot_input_tokens_used += response.usage.prompt_tokens
         logging.info("Responding successful.")
         return assistant_response
 
     def clear_chat(self):
         self.chat_history = []
         logging.info("Chat history cleared.")
+
+    def calculate_costs(self):
+        cost1 = self.chatbot_input_tokens_used * (5/1000000)   # 5,00 $ / 1M tokens
+        cost2 = self.chatbot_output_tokens_used * (15/1000000)  # 15,00 $ / 1M tokens
+        cost3 = self.transcriber_total_duration_in_seconds * (0.006/60)  # $0.006 / minute
+        logging.info("Costs calculated.")
+        return cost1 + cost2 + cost3
 
     def _add_transcript_to_context(self, user_message):
         """

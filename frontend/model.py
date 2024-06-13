@@ -25,3 +25,9 @@ class Model:
         Clear the chat history
         """
         self.api.clear_chat()
+
+    def calculate_costs(self):
+        """
+        Calculate costs
+        """
+        return self.api.calculate_costs()
