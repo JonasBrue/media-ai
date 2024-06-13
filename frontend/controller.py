@@ -32,6 +32,7 @@ class Controller:
         """
         try:
             self.model.transcribe(url)
+            self.view.check_transcript_checkbox()
             messagebox.showinfo("Erfolgreich", "Transkript angefertigt. Chatbot bereit.")
         except Exception as e:
             messagebox.showerror("Fehler", str(e))
@@ -48,6 +49,7 @@ class Controller:
             return
         self.view.toggle_button_state()
         self.view.display_message("Du: " + prompt)
+        self.view.clear_input_field()
         use_transcript = self.view.use_transcript_var.get()
         use_video = self.view.use_video_var.get()
         threading.Thread(target=self._process_message_thread, args=(prompt, use_transcript, use_video)).start()
@@ -68,5 +70,5 @@ class Controller:
     def clear_chat(self):
         self.view.toggle_button_state()
         threading.Thread(target=self.model.clear_chat, args=()).start()
-        self.view.delete_messages()
+        self.view.clear_chat()
         self.view.toggle_button_state()
