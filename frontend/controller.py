@@ -20,7 +20,7 @@ class Controller:
         Starts the video analysis process, validating input and starting a new thread.
         """
         url = self.view.input_video_entry.get()
-        if not url:
+        if not url or url == "Youtube-Link oder Dateipfad eingeben...":
             messagebox.showerror("Eingabe Fehler", "Bitte gib einen gültigen Link an.")
             return
         self.view.toggle_button_state()
@@ -44,7 +44,7 @@ class Controller:
         Sends a message to the chatbot, validating input and starting a new thread.
         """
         prompt = self.view.send_message_entry.get()
-        if not prompt:
+        if not prompt or prompt == "Nachricht eingeben...":
             messagebox.showerror("Eingabe Fehler", "Bitte schreibe eine Nachricht.")
             return
         self.view.toggle_button_state()

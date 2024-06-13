@@ -11,14 +11,14 @@ class View(ThemedTk):
     def __init__(self):
         super().__init__(theme="yaru")
         self.title("Vorlesungsassistent")
-        self.geometry('800x700')
-        self.minsize(800, 700)
+        self.geometry('800x800')
+        self.minsize(800, 800)
         self.configure(bg='#f0f0f0')
         self.button_state = 'normal'
-
+        self.font = ('Segoe UI', 12)
 
         self.style = ttk.Style()
-        self.style.configure('.', font=('Segoe UI', 12))
+        self.style.configure('.', font=self.font)
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
@@ -29,7 +29,7 @@ class View(ThemedTk):
         self.input_video_label = ttk.Label(self.input_frame, text="Vorlesung:")
         self.input_video_label.grid(row=0, column=0, padx=10, pady=10)
 
-        self.input_video_entry = ttk.Entry(self.input_frame, width=50)
+        self.input_video_entry = ttk.Entry(self.input_frame, width=35, font=self.font)
         self.input_video_entry.grid(row=0, column=1, columnspan=2, padx=10, pady=10)
         self.set_placeholder_text(self.input_video_entry, "Youtube-Link oder Dateipfad eingeben...")
 
@@ -45,18 +45,18 @@ class View(ThemedTk):
         self.window_frame.grid_rowconfigure(0, weight=1)
         self.window_frame.grid_columnconfigure(0, weight=1)
 
-        self.chat_window_text = tk.Text(self.window_frame, state='disabled')
+        self.chat_window_text = tk.Text(self.window_frame, width=75, state='disabled', wrap='word', font=self.font)
         self.chat_window_text.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="ns")
 
         self.chat_scrollbar = ttk.Scrollbar(self.window_frame, orient=tk.VERTICAL, command=self.chat_window_text.yview)
-        self.chat_scrollbar.grid(row=0, column=4, padx=10, pady=10, sticky='ns')
+        self.chat_scrollbar.grid(row=0, column=4, padx=5, pady=10, sticky='ns')
         self.chat_window_text['yscrollcommand'] = self.chat_scrollbar.set
 
         # Chat Input
         self.message_frame = ttk.Frame(self)
         self.message_frame.grid(row=2, column=0, columnspan=5, padx=10, pady=10)
 
-        self.send_message_entry = ttk.Entry(self.message_frame, width=70)
+        self.send_message_entry = ttk.Entry(self.message_frame, width=62, font=self.font)
         self.send_message_entry.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="ew")
         self.set_placeholder_text(self.send_message_entry, "Nachricht eingeben...")
 
@@ -65,12 +65,12 @@ class View(ThemedTk):
         self.send_message_entry.bind('<Return>', lambda event: self.send_message_button.invoke())
 
         self.use_transcript_var = tk.BooleanVar()
-        self.use_transcript_check = ttk.Checkbutton(self.message_frame, text="Transkript anhängen",
+        self.use_transcript_check = ttk.Checkbutton(self.message_frame, text=" Transkript anhängen",
                                                     variable=self.use_transcript_var)
         self.use_transcript_check.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
 
         self.use_video_var = tk.BooleanVar()
-        self.use_video_check = ttk.Checkbutton(self.message_frame, text="Videoabschnitte anhängen (Ressourcenintensiv)",
+        self.use_video_check = ttk.Checkbutton(self.message_frame, text=" Videoabschnitte anhängen (Ressourcenintensiv)",
                                                variable=self.use_video_var)
         self.use_video_check.grid(row=1, column=2, columnspan=2, padx=10, pady=10)
 
