@@ -24,15 +24,16 @@ class Controller:
             messagebox.showerror("Eingabe Fehler", "Bitte gib einen gültigen Link an.")
             return
         self.view.toggle_button_state()
-        use_api = self.view.use_api_to_transcribe.get()
-        threading.Thread(target=self._process_video_thread, args=(use_api, url)).start()
+        backend_id = self.view.use_backend_to_transcribe.get()
+        threading.Thread(target=self._process_video_thread,
+                         args=(backend_id, url)).start()
 
-    def _process_video_thread(self, use_api, url):
+    def _process_video_thread(self, backend_id, url):
         """
         Processes the video in a separate thread, to avoid blocking the UI.
         """
         try:
-            self.model.transcribe(use_api, url)
+            self.model.transcribe(backend_id, url)
             self.view.check_transcript_checkbox()
             messagebox.showinfo("Erfolgreich", "Transkript angefertigt. Chatbot bereit.")
         except Exception as e:
@@ -46,23 +47,25 @@ class Controller:
         """
         Sends a message to the chatbot, validating input and starting a new thread.
         """
-        prompt = self.view.send_message_entry.get()
-        if not prompt or prompt == "Nachricht eingeben...":
+        user_input = self.view.send_message_entry.get()
+        if not user_input or user_input == "Nachricht eingeben...":
             messagebox.showerror("Eingabe Fehler", "Bitte schreibe eine Nachricht.")
             return
-        self.view.toggle_button_state()
-        self.view.display_message("Du: " + prompt)
-        self.view.clear_input_field()
+        backend_id = self.view.use_backend_to_chat.get()
         use_transcript = self.view.use_transcript_var.get()
         use_video = self.view.use_video_var.get()
-        threading.Thread(target=self._process_message_thread, args=(prompt, use_transcript, use_video)).start()
+        self.view.toggle_button_state()
+        self.view.display_message("Du: " + user_input)
+        self.view.clear_input_field()
+        threading.Thread(target=self._process_message_thread,
+                         args=(backend_id, user_input, use_transcript, use_video)).start()
 
-    def _process_message_thread(self, prompt, use_transcript, use_video):
+    def _process_message_thread(self, backend_id, user_input, use_transcript, use_video):
         """
         Processes the chatbot message in a separate thread, to keep the UI responsive.
         """
         try:
-            response = self.model.chat(prompt, use_transcript, use_video)
+            response = self.model.chat(backend_id, user_input, use_transcript, use_video)
             self.view.display_message("Bot: " + response)
         except Exception as e:
             messagebox.showerror("Fehler", str(e))

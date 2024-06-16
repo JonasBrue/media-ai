@@ -17,15 +17,15 @@ class LOCAL:
         """
         if torch.cuda.is_available():
             device = "cuda"
-            logging.info("CUDA device is available. Using GPU.")
+            logging.info("CUDA-Gerät ist verfügbar. GPU wird verwendet.")
         else:
             device = "cpu"
-            logging.info("CUDA device not available. Using CPU.")
+            logging.info("CUDA-Gerät nicht verfügbar. CPU wird verwendet.")
         self.whisper = whisper.load_model(name=self.MODEL_TRANSCRIBER, device=device)
         self.chatbot = GPT4All(model_name=self.MODEL_CHATBOT)
         self.chat_history = []
         self.costs = 0
-        logging.info("Started.")
+        logging.info("Gestartet.")
 
     def transcribe(self, video_input):
         """
@@ -33,21 +33,21 @@ class LOCAL:
         Converts video to audio and then transcribes the audio.
         Returns the path to the transcript JSON file.
         """
-        logging.info("Transcribing ...")
+        logging.info("Transkribieren ...")
         path_to_audio = convert_to_audio(video_input)
         path, _ = os.path.splitext(path_to_audio)
         path_to_transcript = path + ".json"
 
         if os.path.exists(path_to_transcript):
-            logging.info("Operation done before. File already exists at: " + path_to_transcript)
+            logging.info("Operation wurde bereits durchgeführt. Datei existiert bereits unter: " + path_to_transcript)
         else:
             try:
                 transcript_response = self.whisper.transcribe(path_to_audio)
                 with open(path_to_transcript, 'w', encoding='utf-8') as file:
                     json.dump(transcript_response, file, ensure_ascii=False, indent=4)
-                logging.info("Transcribing successful.")
+                logging.info("Erfolgreiche Transkription.")
             except Exception:
-                raise Exception("Transcription failed. Try using the API instead")
+                raise Exception("Transkription fehlgeschlagen. Versuchen Sie den OpenAI-Server zu verwenden.")
 
         return path_to_transcript
 
@@ -56,28 +56,26 @@ class LOCAL:
         Generates a chat response based on user input.
         Optionally including the transcript and video frames.
         """
-        logging.info("Responding to user input ...")
-        messages = "Sie sind ein hilfreicher Assistent, der Fragen von Studenten zu Vorlesungen beantwortet. " \
-                   "Ihnen können Bilder und ein Transkript der Vorlesung zur Verfügung gestellt werden. " \
-                   "Bitte geben Sie präzise und verständliche Antworten, die den Studenten helfen, " \
-                   "die Inhalte der Vorlesung besser zu verstehen. "
+        logging.info("Antworte auf Benutzereingabe ...")
+        messages = "Du bist ein hilfreicher Assistent, der Fragen von Studenten zu Vorlesungen beantwortet. "
         if self.chat_history:
-            messages += "Dies war der bisherige Chatverlauf: ".join(self.chat_history)
+            messages += " Dies war der bisherige Chatverlauf:".join(self.chat_history)
+            messages += " Ende des Chatverlaufs. Nun folgt die Frage."
 
         messages += self._add_content(path_to_transcript, use_transcript, use_video)
 
         if user_input:
-            messages += f"{user_input}"
+            messages += f"USER: {user_input} ASSISTANT:"
 
         response = self.chatbot.generate(prompt=messages)
-        self.chat_history.append("Student: " + user_input)
-        self.chat_history.append("Antwort: " + response)
-        logging.info("Responding successful.")
+        self.chat_history.append(" USER: " + user_input)
+        self.chat_history.append(" ASSISTANT: " + response)
+        logging.info("Erfolgreich geantwortet.")
         return response
 
     def clear_chat(self):
         self.chat_history = []
-        logging.info("Chat history cleared.")
+        logging.info("Chat-Verlauf gelöscht.")
 
     def calculate_costs(self):
         return self.costs
@@ -89,7 +87,7 @@ class LOCAL:
         content = ""
         if use_transcript:
             if not os.path.exists(path_to_transcript):
-                raise Exception("Transcript is not available.")
+                raise Exception("Das Transkript ist nicht verfügbar.")
             with open(path_to_transcript, 'r', encoding='utf-8') as file:
                 transcript = json.load(file)
             transcript_segments = transcript['segments']
@@ -101,5 +99,5 @@ class LOCAL:
                 transcript_formatted += f"[{start_time} - {end_time}] {text}\n"
             content += f"Die Audiotranskription der Vorlesung ist: \n{transcript_formatted}"
         if use_video:
-            raise Exception("Local Chatbot cannot process the video. Try using the API instead")
+            raise Exception("Der lokale Chatbot kann keine Videoabschnitte verarbeiten.")
         return content

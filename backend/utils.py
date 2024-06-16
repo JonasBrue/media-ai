@@ -14,32 +14,32 @@ def convert_to_audio(user_input):
     """
     Converts the video input to a valid audio format, either by downloading from YouTube or converting video to audio.
     """
-    if "youtube.com" in user_input or "youtu.be" in user_input:
+    if "youtube." in user_input or "youtu.be" in user_input:
         path_to_video = download_youtube_video(user_input)
         return video_to_audio(path_to_video)
     elif os.path.exists(user_input):
         if user_input.lower().endswith('.mp4'):
             return video_to_audio(user_input)
         else:
-            raise Exception("Unsupported file format. Please provide an .mp4 file or a YouTube url.")
+            raise Exception("Nicht-unterstütztes Dateiformat. Bitte geben Sie eine .mp4-Datei oder eine YouTube-URL an.")
     else:
-        raise Exception("Input does not exist.")
+        raise Exception("Die Eingabe ist nicht vorhanden.")
 
 
 def video_to_audio(path_to_video):
     """
     Converts a video file to an audio file.
     """
-    logging.info("Converting video to audio ...")
+    logging.info("Umwandlung von Video in Audio ...")
     path_to_audio = path_to_video.replace(".mp4", ".mp3")
 
     if os.path.exists(path_to_audio):
-        logging.info("Operation done before. File already exists at: " + path_to_audio)
+        logging.info("Operation wurde bereits durchgeführt. Datei existiert bereits unter: " + path_to_audio)
     else:
         video = AudioFileClip(path_to_video)
         video.write_audiofile(path_to_audio)
         video.close()
-        logging.info("Converted to mp3 file at: " + path_to_audio)
+        logging.info("Video konvertiert in eine mp3-Datei unter: " + path_to_audio)
 
     return path_to_audio
 
@@ -51,28 +51,28 @@ def download_youtube_video(url):
     try:
         yt = pytube.YouTube(url)
     except RegexMatchError:
-        raise Exception("Incorrect input.")
+        raise Exception("Falsche Eingabe.")
 
     path_to_storage = "./storage/"
     path_to_video = path_to_storage + "youtube-" + yt.video_id + ".mp4"
     if os.path.exists(path_to_video):
-        logging.info("Operation done before. File already exists at: " + path_to_video)
+        logging.info("Operation wurde bereits durchgeführt. Datei existiert bereits unter: " + path_to_video)
         return path_to_video
 
     try:
-        logging.info("Looking for the video on youtube ...")
+        logging.info("Suche nach dem Video auf YouTube ...")
         stream = yt.streams.filter(progressive=True, file_extension="mp4").get_highest_resolution()
-        logging.info("Found video: '" + yt.title + "' by '" + yt.author + "'")
-        logging.info("Starting to download ...")
+        logging.info("Video gefunden: '" + yt.title + "' von '" + yt.author + "'")
+        logging.info("Starte Download ...")
         download = stream.download(output_path=path_to_storage)
-        logging.info("Download successful.")
+        logging.info("Erfolgreicher Download.")
     except VideoUnavailable:
-        raise Exception("Video Unavailable.")
+        raise Exception("Das Video ist nicht verfügbar.")
     except URLError:
-        raise Exception("No internet connection.")
+        raise Exception("Keine Internetverbindung")
 
     os.rename(download, path_to_video)  # Save the mp4 file in storage
-    logging.info("Converted to mp4 file at: " + path_to_video)
+    logging.info("YouTube-Video konvertiert in eine mp4-Datei unter: " + path_to_video)
     return path_to_video
 
 
@@ -93,7 +93,7 @@ def extract_video_frames(path_to_video, interval_seconds):
     """
     Extracts frames from a video at specified intervals and encodes them to base64.
     """
-    logging.info(f"Extracting video frames ...")
+    logging.info("Extrahiere Video-Bilder ...")
     video = cv2.VideoCapture(path_to_video)
     video_frames = []
 
@@ -116,7 +116,7 @@ def extract_video_frames(path_to_video, interval_seconds):
         frame_count += 1
     video.release()
 
-    logging.info(f"Extracted {len(video_frames)} frames")
+    logging.info(f"{len(video_frames)} Bilder extrahiert.")
     return video_frames
 
 
@@ -152,4 +152,4 @@ def log_api_response(completion):
     path_to_log = "./log/api-response-" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + ".json"
     with open(path_to_log, 'w', encoding='utf-8') as file:
         json.dump(completion_data, file, ensure_ascii=False, indent=4)
-    logging.info("Saved api response at: " + path_to_log)
+    logging.info("API-Antwort gespeichert unter: " + path_to_log)

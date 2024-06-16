@@ -18,14 +18,14 @@ class API:
         load_dotenv()
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
-            raise Exception("API key not found. Set the OPENAI_API_KEY environment variable.")
+            raise Exception("API-Schlüssel nicht gefunden. Setzen den API-Schlüssel OPENAI_API_KEY in der .env-Datei.")
         self.client = OpenAI(api_key=api_key)
         self.chatbot_output_tokens_used = 0
         self.chatbot_input_tokens_used = 0
         self.transcriber_total_duration_in_seconds = 0
         self.chat_history = []
         self.video_frames_storage = {}
-        logging.info("Started.")
+        logging.info("Gestartet.")
 
     def transcribe(self, video_input):
         """
@@ -33,13 +33,13 @@ class API:
         Converts video to audio and then transcribes the audio.
         Returns the path to the transcript JSON file.
         """
-        logging.info("Transcribing ...")
+        logging.info("Transkribieren ...")
         path_to_audio = convert_to_audio(video_input)
         path, _ = os.path.splitext(path_to_audio)
         path_to_transcript = path + ".json"
 
         if os.path.exists(path_to_transcript):
-            logging.info("Operation done before. File already exists at: " + path_to_transcript)
+            logging.info("Operation wurde bereits durchgeführt. Datei existiert bereits unter: " + path_to_transcript)
         else:
             transcript_response = self.client.audio.transcriptions.create(
                 file=open(path_to_audio, "rb"),
@@ -57,7 +57,7 @@ class API:
             with open(path_to_transcript, 'w', encoding='utf-8') as file:
                 json.dump(transcript_data, file, ensure_ascii=False, indent=4)
             self.transcriber_total_duration_in_seconds += transcript_response.duration
-            logging.info("Transcribing successful.")
+            logging.info("Erfolgreiche Transkription.")
 
         return path_to_transcript
 
@@ -66,7 +66,7 @@ class API:
         Generates a chat response based on user input.
         Optionally including the transcript and video frames.
         """
-        logging.info("Responding to user input ...")
+        logging.info("Antworte auf Benutzereingabe ...")
 
         messages = [{"role": "system", "content": "Sie sind ein hilfreicher Assistent, der Fragen von Studenten zu "
                                                   "Vorlesungen beantwortet. Ihnen können Bilder und ein Transkript "
@@ -95,18 +95,18 @@ class API:
         self.chat_history.append({"role": "assistant", "content": f"{assistant_response}"})
         self.chatbot_output_tokens_used += response.usage.completion_tokens
         self.chatbot_input_tokens_used += response.usage.prompt_tokens
-        logging.info("Responding successful.")
+        logging.info("Erfolgreich geantwortet.")
         return assistant_response
 
     def clear_chat(self):
         self.chat_history = []
-        logging.info("Chat history cleared.")
+        logging.info("Chat-Verlauf gelöscht.")
 
     def calculate_costs(self):
         cost1 = self.chatbot_input_tokens_used * (5 / 1000000)  # 5,00 $ / 1M tokens
         cost2 = self.chatbot_output_tokens_used * (15 / 1000000)  # 15,00 $ / 1M tokens
         cost3 = self.transcriber_total_duration_in_seconds * (0.006 / 60)  # $0.006 / minute
-        logging.info("Costs calculated.")
+        logging.info("Kosten berechnet.")
         return cost1 + cost2 + cost3
 
     def _add_content(self, path_to_transcript, use_transcript, use_video):
@@ -116,7 +116,7 @@ class API:
         user_message = {"role": "user", "content": []}
         if use_transcript:
             if not os.path.exists(path_to_transcript):
-                raise Exception("Transcript is not available.")
+                raise Exception("Das Transkript ist nicht verfügbar.")
             with open(path_to_transcript, 'r', encoding='utf-8') as file:
                 transcript = json.load(file)
             transcript_segments = transcript['segments']
@@ -133,7 +133,7 @@ class API:
         if use_video:
             path, _ = os.path.splitext(path_to_transcript)
             if not os.path.exists(path + ".mp4"):
-                raise Exception("Video is not available.")
+                raise Exception("Das Video ist nicht verfügbar.")
             if path not in self.video_frames_storage:
                 self.video_frames_storage[path] = extract_video_frames(path + ".mp4", API.FRAME_INTERVAL_IN_SECONDS)
             user_message['content'].extend([

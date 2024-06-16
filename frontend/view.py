@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, messagebox
 from ttkthemes import ThemedTk
 
 
@@ -14,8 +14,10 @@ class View(ThemedTk):
         self.geometry('800x800')
         self.minsize(800, 800)
         self.configure(bg='#f0f0f0')
-        self.button_state = 'normal'
         self.font = ('Segoe UI', 12)
+        self.button_state = 'normal'
+        self.confirmed_data_privacy_transcriber = False
+        self.confirmed_data_privacy_chatbot = False
 
         self.style = ttk.Style()
         self.style.configure('.', font=self.font)
@@ -24,36 +26,34 @@ class View(ThemedTk):
 
         # Video
         self.input_frame = ttk.Frame(self)
-        self.input_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.input_frame.grid(row=0, column=0, padx=10, pady=10)
         self.input_frame.grid_columnconfigure(1, weight=1)
 
-        self.input_video_label = ttk.Label(self.input_frame, text="1. Vorlesung wählen:")
-        self.input_video_label.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.chatbot_selection_label = ttk.Label(self.input_frame, text="1. Vorlesung wählen:")
+        self.chatbot_selection_label.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
         self.input_video_entry = ttk.Entry(self.input_frame, font=self.font)
-        self.input_video_entry.grid(row=0, column=1, columnspan=2, padx=(10,1), pady=10, sticky="ew")
+        self.input_video_entry.grid(row=0, column=1, columnspan=2, padx=(10, 1), pady=10, sticky="ew")
         self.set_placeholder_text(self.input_video_entry, "Youtube-Link oder Dateipfad eingeben...")
 
         self.select_video_button = ttk.Button(self.input_frame, text="Dateipfad auswählen", command=self.select_video)
-        self.select_video_button.grid(row=0, column=3, padx=(1,10), pady=10, sticky="ew")
+        self.select_video_button.grid(row=0, column=3, padx=(1, 10), pady=10, sticky="ew")
 
         self.computation_selection_label = ttk.Label(self.input_frame, text="2. Transkript generieren:")
         self.computation_selection_label.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
 
-        self.use_api_to_transcribe = tk.BooleanVar(value=False)
-        self.local_computation_radiobutton = ttk.Radiobutton(self.input_frame, text="Deine Hardware nutzen",
-                                                             variable=self.use_api_to_transcribe, value=False)
-        self.local_computation_radiobutton.grid(row=1, column=1, padx=(10,1), pady=10, sticky="w")
+        self.use_backend_to_transcribe = tk.StringVar(value="local")
+        self.local_transcribe_radiobutton = ttk.Radiobutton(self.input_frame, text="Deine Hardware nutzen",
+                                                            variable=self.use_backend_to_transcribe, value="local")
+        self.local_transcribe_radiobutton.grid(row=1, column=1, padx=(10, 1), pady=10, sticky="w")
 
-        self.api_computation_radiobutton = ttk.Radiobutton(self.input_frame, text="OpenAI-Server verwenden",
-                                                           variable=self.use_api_to_transcribe, value=True)
-        self.api_computation_radiobutton.grid(row=1, column=2, padx=(1,1), pady=10, sticky="w")
+        self.api_transcribe_radiobutton = ttk.Radiobutton(self.input_frame, text="OpenAI-Server verwenden",
+                                                          variable=self.use_backend_to_transcribe, value="api",
+                                                          command=self.confirm_data_privacy_transcriber)
+        self.api_transcribe_radiobutton.grid(row=1, column=2, padx=(1, 1), pady=10, sticky="w")
 
         self.analyse_video_button = ttk.Button(self.input_frame, text="Starten")
-        self.analyse_video_button.grid(row=1, column=3, padx=(1,10), pady=10, sticky="ew")
-
-
-
+        self.analyse_video_button.grid(row=1, column=3, padx=(1, 10), pady=10, sticky="ew")
 
         # Chat Window
         self.window_frame = ttk.Frame(self)
@@ -70,33 +70,46 @@ class View(ThemedTk):
 
         # Chat Input
         self.message_frame = ttk.Frame(self)
-        self.message_frame.grid(row=2, column=0, columnspan=5, padx=10, pady=10)
+        self.message_frame.grid(row=2, column=0, padx=10, pady=10)
+        self.message_frame.grid_columnconfigure(1, weight=1)
 
-        self.send_message_entry = ttk.Entry(self.message_frame, width=62, font=self.font)
-        self.send_message_entry.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="ew")
+        self.chatbot_selection_label = ttk.Label(self.message_frame, text="3. Chatbot wählen:")
+        self.chatbot_selection_label.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+        self.use_backend_to_chat = tk.StringVar(value="local")
+        self.local_chat_radiobutton = ttk.Radiobutton(self.message_frame, text="Lokaler Chatbot",
+                                                      variable=self.use_backend_to_chat, value="local")
+        self.local_chat_radiobutton.grid(row=0, column=1, padx=(10, 1), pady=10, sticky="w")
+
+        self.api_chat_radiobutton = ttk.Radiobutton(self.message_frame, text="Online-Chatbot (OpenAI: GPT-4o)",
+                                                    variable=self.use_backend_to_chat, value="api",
+                                                    command=self.confirm_data_privacy_chatbot)
+        self.api_chat_radiobutton.grid(row=0, column=2, padx=(1, 1), pady=10, sticky="w")
+
+        self.clear_chat_button = ttk.Button(self.message_frame, text="Chat leeren")
+        self.clear_chat_button.grid(row=0, column=3, padx=(1, 10), pady=10, sticky="ew")
+
+        self.send_message_entry = ttk.Entry(self.message_frame, width=70, font=self.font)
+        self.send_message_entry.grid(row=1, column=0, columnspan=3, padx=(10, 1), pady=10, sticky="ew")
         self.set_placeholder_text(self.send_message_entry, "Nachricht eingeben...")
 
         self.send_message_button = ttk.Button(self.message_frame, text="Senden")
-        self.send_message_button.grid(row=0, column=4, padx=10, pady=10)
+        self.send_message_button.grid(row=1, column=3, padx=(1, 10), pady=10, sticky="ew")
         self.send_message_entry.bind('<Return>', lambda event: self.send_message_button.invoke())
 
         self.use_transcript_var = tk.BooleanVar()
         self.use_transcript_check = ttk.Checkbutton(self.message_frame, text=" Transkript anhängen",
                                                     variable=self.use_transcript_var)
-        self.use_transcript_check.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+        self.use_transcript_check.grid(row=2, column=0, padx=10, pady=10, sticky="ew")
 
         self.use_video_var = tk.BooleanVar()
         self.use_video_check = ttk.Checkbutton(self.message_frame,
                                                text=" Videoabschnitte anhängen (Ressourcenintensiv)",
                                                variable=self.use_video_var)
-        self.use_video_check.grid(row=1, column=2, columnspan=2, padx=10, pady=10)
+        self.use_video_check.grid(row=2, column=1, columnspan=2, padx=10, pady=10, sticky="ew")
 
-        self.clear_chat_button = ttk.Button(self.message_frame, text="Chat leeren")
-        self.clear_chat_button.grid(row=1, column=4, padx=10, pady=10)
-
-        # Costs display
-        self.costs_label = ttk.Label(self.message_frame, text="Kosten in dieser Sitzung: $0.00", font=self.font)
-        self.costs_label.grid(row=2, column=0, columnspan=5, padx=10, pady=10)
+        self.costs_label = ttk.Label(self.message_frame, text="Server-Kosten: $0.00", font=self.font)
+        self.costs_label.grid(row=2, column=3, padx=10, pady=10, sticky="ew")
 
     def set_placeholder_text(self, entry, placeholder):
         """
@@ -132,7 +145,7 @@ class View(ThemedTk):
         Displays a message in the chat window.
         """
         self.chat_window_text.config(state='normal')
-        self.chat_window_text.insert(tk.END, text + "\n")
+        self.chat_window_text.insert(tk.END, text + "\n" + "\n")
         self.chat_window_text.config(state='disabled')
 
     def clear_chat(self):
@@ -168,4 +181,30 @@ class View(ThemedTk):
         """
         Displays the API usage costs in the costs label.
         """
-        self.costs_label.config(text=f"Kosten in dieser Sitzung: ${costs:.2f}")
+        self.costs_label.config(text=f"Server-Kosten: ${costs:.2f}")
+
+    def confirm_data_privacy_transcriber(self):
+        if not self.confirmed_data_privacy_transcriber:
+            confirmation = messagebox.askyesno("Datenübertragung an OpenAI",
+                                               "Wenn Sie fortfahren, werden Ihre Video- und Audiodaten an OpenAI zur "
+                                               "Transkription gesendet. "
+                                               "Sie sind verantwortlich für die Weitergabe dieser Daten "
+                                               "und die Einhaltung der Datenschutzrichtlinien. "
+                                               "Wollen Sie fortfahren?")
+            if confirmation:
+                self.confirmed_data_privacy_transcriber = True
+            else:
+                self.use_backend_to_transcribe.set("local")
+
+    def  confirm_data_privacy_chatbot(self):
+        if not self.confirmed_data_privacy_chatbot:
+            confirmation = messagebox.askyesno("Datenübertragung an OpenAI",
+                                               "Wenn Sie fortfahren, werden Ihre Texteingaben und Transkriptionsdaten "
+                                               "an OpenAI gesendet, um eine Chat-Antwort zu generieren. "
+                                               "Sie sind verantwortlich für die Weitergabe dieser Daten "
+                                               "und die Einhaltung der Datenschutzrichtlinien. "
+                                               "Wollen Sie fortfahren?")
+            if confirmation:
+                self.confirmed_data_privacy_chatbot = True
+            else:
+                self.use_backend_to_chat.set("local")

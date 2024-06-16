@@ -9,28 +9,29 @@ class Model:
 
     def __init__(self):
         self.backends = {
-            True: API(),
-            False: LOCAL()
+            "api": API(),
+            "local": LOCAL()
         }
         self.path_to_transcript = ""
 
-    def transcribe(self, use_api, video_input):
+    def transcribe(self, backend_id, video_input):
         """
         Transcribe audio from video input
         """
-        self.path_to_transcript = self.backends[use_api].transcribe(video_input)
+        self.path_to_transcript = self.backends[backend_id].transcribe(video_input)
 
-    def chat(self, use_api, user_input, use_transcript, use_video):
+    def chat(self, backend_id, user_input, use_transcript, use_video):
         """
         Generate a chat response to the users input, optionally including the transcript and video.
         """
-        return self.backends[use_api].chat(user_input, self.path_to_transcript, use_transcript, use_video)
+        return self.backends[backend_id].chat(user_input, self.path_to_transcript, use_transcript, use_video)
 
-    def clear_chat(self, use_api):
+    def clear_chat(self):
         """
         Clear the chat history
         """
-        self.backends[use_api].clear_chat()
+        for backend in self.backends.values():
+            backend.clear_chat()
 
     def calculate_costs(self):
         """
