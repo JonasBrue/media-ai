@@ -89,7 +89,7 @@ def convert_seconds_to_hms(seconds):
         return f"{minutes}:{seconds:02}"
 
 
-def extract_video_frames(path_to_video, interval_seconds):
+def extract_video_frames(path_to_video, extracted_frames_amount):
     """
     Extracts frames from a video at specified intervals and encodes them to base64.
     """
@@ -97,9 +97,13 @@ def extract_video_frames(path_to_video, interval_seconds):
     video = cv2.VideoCapture(path_to_video)
     video_frames = []
 
-    # Calculating the amount of frames to skip between each extraction
-    frame_per_seconds = video.get(cv2.CAP_PROP_FPS)  # FPS
-    frame_interval = frame_per_seconds * interval_seconds
+    total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+    if extracted_frames_amount > total_frames:
+        logging.info("Requested more frames than available in the video.")
+        extracted_frames_amount = total_frames
+
+    frame_interval = total_frames // extracted_frames_amount
+    offset = frame_interval // 2
 
     frame_count = 0
     while video.isOpened():
@@ -107,12 +111,14 @@ def extract_video_frames(path_to_video, interval_seconds):
         successful_read, frame = video.read()
         if not successful_read:
             break
-        if frame_count % frame_interval == 0:
+        if (frame_count - offset) % frame_interval == 0 and frame_count >= offset:
             # Save frame as JPEG and encode to base64
             successful_encode, buffer = cv2.imencode('.jpg', frame)
             if successful_encode:
                 frame_base64 = base64.b64encode(buffer).decode('utf-8')
                 video_frames.append(frame_base64)
+            if len(video_frames) >= extracted_frames_amount:
+                break
         frame_count += 1
     video.release()
 

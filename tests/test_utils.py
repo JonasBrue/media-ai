@@ -72,15 +72,23 @@ class TestUtils(unittest.TestCase):
 
     @patch("cv2.VideoCapture")
     def test_extract_video_frames(self, m_video_capture):
-        FPS = 60
-        INTERVAL_SECONDS = 2
+        TOTAL_FRAMES = 20
+        EXTRACTED_FRAMES_AMOUNT = 2
+        FRAME_INTERVAL = TOTAL_FRAMES // EXTRACTED_FRAMES_AMOUNT
+        OFFSET = FRAME_INTERVAL // 2
         m_video = m_video_capture.return_value
-        m_video.get.return_value = FPS
-        m_video.read.side_effect = [(True, "frame_0"), (True, "frame_1"), (True, "frame_2"), (False, None)]
+        m_video.get.return_value = TOTAL_FRAMES
+        m_video.read.side_effect = [(True, f"frame_{i}") for i in range(TOTAL_FRAMES)] + [(False, "None")]
         m_encode = patch("cv2.imencode", return_value=(True, b"encoded_frame")).start()
-        expected_result = [base64.b64encode(b"encoded_frame").decode("utf-8")]
+        expected_encoding_of_frames = base64.b64encode(b"encoded_frame").decode("utf-8")
+        expected_result = []
+        for i in range(OFFSET, TOTAL_FRAMES, FRAME_INTERVAL):
+            if i < TOTAL_FRAMES:
+                expected_result.append(expected_encoding_of_frames)
+            if len(expected_result) >= EXTRACTED_FRAMES_AMOUNT:
+                break
 
-        result = extract_video_frames("path/to/video.mp4", INTERVAL_SECONDS)
+        result = extract_video_frames("path/to/video.mp4", EXTRACTED_FRAMES_AMOUNT)
         self.assertEqual(result, expected_result)
         m_video_capture.assert_called_once_with("path/to/video.mp4")
         m_video.get.assert_called_once()
@@ -148,7 +156,7 @@ class TestUtils(unittest.TestCase):
 
         m_open.assert_called_once_with("./log/api-response-2000-01-01-01-00-00.json", "w", encoding="utf-8")
         m_dump.assert_called_once_with(expected_data, m_open().__enter__(), ensure_ascii=False, indent=4)
-        m_info.assert_called_once_with("Saved api response at: ./log/api-response-2000-01-01-01-00-00.json")
+        m_info.assert_called_once_with("API-Antwort gespeichert unter: ./log/api-response-2000-01-01-01-00-00.json")
 
 
 if __name__ == "__main__":

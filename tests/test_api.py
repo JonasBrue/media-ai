@@ -100,7 +100,7 @@ class TestAPI(unittest.TestCase):
         m_convert_seconds_to_hms.assert_called()
         self.assertIn("Audiotranskription", result["content"][0]["text"])
         m_exists.assert_any_call("path/to/ABC.mp4")
-        m_extract_video_frames.assert_called_once_with("path/to/ABC.mp4", api_instance.FRAME_INTERVAL_IN_SECONDS)
+        m_extract_video_frames.assert_called_once_with("path/to/ABC.mp4", api_instance.EXTRACTED_FRAMES_AMOUNT)
         self.assertEqual(len(result["content"]), 4)
         self.assertIn("Audiotranskription", result["content"][0]["text"])
         self.assertIn("encoded_frame_0", result["content"][1]["image_url"]["url"])

@@ -9,7 +9,7 @@ from backend.utils import convert_to_audio, convert_seconds_to_hms, extract_vide
 class API:
     MODEL_CHATBOT = "gpt-4o"
     MODEL_TRANSCRIBER = "whisper-1"
-    FRAME_INTERVAL_IN_SECONDS = 10
+    EXTRACTED_FRAMES_AMOUNT = 10
 
     def __init__(self):
         """
@@ -132,10 +132,11 @@ class API:
             })
         if use_video:
             path, _ = os.path.splitext(path_to_transcript)
-            if not os.path.exists(path + ".mp4"):
+            path_to_video = path + ".mp4"
+            if not os.path.exists(path_to_video):
                 raise Exception("Das Video ist nicht verfügbar.")
-            if path not in self.video_frames_storage:
-                self.video_frames_storage[path] = extract_video_frames(path + ".mp4", API.FRAME_INTERVAL_IN_SECONDS)
+            if path_to_video not in self.video_frames_storage:
+                self.video_frames_storage[path_to_video] = extract_video_frames(path_to_video, API.EXTRACTED_FRAMES_AMOUNT)
             user_message['content'].extend([
                 {
                     "type": "image_url",
@@ -143,6 +144,6 @@ class API:
                         "url": f'data:image/jpg;base64,{frame}',
                         "detail": "low"
                     }
-                } for frame in self.video_frames_storage[path]
+                } for frame in self.video_frames_storage[path_to_video]
             ])
         return user_message
