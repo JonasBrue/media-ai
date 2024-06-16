@@ -24,8 +24,7 @@ class API:
         self.chatbot_input_tokens_used = 0
         self.transcriber_total_duration_in_seconds = 0
         self.chat_history = []
-        self.current_path = ""
-        self.video_frames_map = {}
+        self.video_frames_storage = {}
         logging.info("Started.")
 
     def transcribe(self, video_input):
@@ -36,9 +35,9 @@ class API:
         """
         logging.info("Transcribing ...")
         path_to_audio = convert_to_audio(video_input)
-        self.current_path, _ = os.path.splitext(path_to_audio)
+        path, _ = os.path.splitext(path_to_audio)
+        path_to_transcript = path + ".json"
 
-        path_to_transcript = self.current_path + ".json"
         if os.path.exists(path_to_transcript):
             logging.info("Operation done before. File already exists at: " + path_to_transcript)
         else:
@@ -62,7 +61,7 @@ class API:
 
         return path_to_transcript
 
-    def chat(self, user_input, use_transcript, use_video):
+    def chat(self, user_input, path_to_transcript, use_transcript, use_video):
         """
         Generates a chat response based on user input.
         Optionally including the transcript and video frames.
@@ -77,11 +76,7 @@ class API:
         if self.chat_history:
             messages.extend(self.chat_history)
 
-        user_message = {"role": "user", "content": []}
-        if use_transcript:
-            self._add_transcript_to_context(user_message)
-        if use_video:
-            self._add_video_to_context(user_message)
+        user_message = self._add_content(path_to_transcript, use_transcript, use_video)
         if user_input:
             user_message['content'].append({
                 "type": "text",
@@ -108,46 +103,46 @@ class API:
         logging.info("Chat history cleared.")
 
     def calculate_costs(self):
-        cost1 = self.chatbot_input_tokens_used * (5/1000000)   # 5,00 $ / 1M tokens
-        cost2 = self.chatbot_output_tokens_used * (15/1000000)  # 15,00 $ / 1M tokens
-        cost3 = self.transcriber_total_duration_in_seconds * (0.006/60)  # $0.006 / minute
+        cost1 = self.chatbot_input_tokens_used * (5 / 1000000)  # 5,00 $ / 1M tokens
+        cost2 = self.chatbot_output_tokens_used * (15 / 1000000)  # 15,00 $ / 1M tokens
+        cost3 = self.transcriber_total_duration_in_seconds * (0.006 / 60)  # $0.006 / minute
         logging.info("Costs calculated.")
         return cost1 + cost2 + cost3
 
-    def _add_transcript_to_context(self, user_message):
+    def _add_content(self, path_to_transcript, use_transcript, use_video):
         """
-        Adds the formatted transcript of the audio to the context of the user message.
+        Adds content to the user message based on the transcript and video frames if specified.
         """
-        if not os.path.exists(self.current_path + ".json"):
-            raise Exception("Transcript is not available.")
-        with open(self.current_path + ".json", 'r', encoding='utf-8') as file:
-            transcript = json.load(file)
-        transcript_segments = transcript['segments']
-        transcript_formatted = ""
-        for segment in transcript_segments:
-            start_time = convert_seconds_to_hms(segment['start'])
-            end_time = convert_seconds_to_hms(segment['end'])
-            text = segment['text']
-            transcript_formatted += f"[{start_time} - {end_time}] {text}\n"
-        user_message['content'].append({
-            "type": "text",
-            "text": f"Die Audiotranskription der Vorlesung ist: \n{transcript_formatted}"
-        })
-
-    def _add_video_to_context(self, user_message):
-        """
-        Adds encoded video frames to the context of the user message and saves them in a map.
-        """
-        if not os.path.exists(self.current_path + ".mp4"):
-            raise Exception("Video is not available.")
-        if self.current_path not in self.video_frames_map:
-            self.video_frames_map[self.current_path] = extract_video_frames(self.current_path + ".mp4", API.FRAME_INTERVAL_IN_SECONDS)
-        user_message['content'].extend([
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": f'data:image/jpg;base64,{frame}',
-                    "detail": "low"
-                }
-            } for frame in self.video_frames_map[self.current_path]
-        ])
+        user_message = {"role": "user", "content": []}
+        if use_transcript:
+            if not os.path.exists(path_to_transcript):
+                raise Exception("Transcript is not available.")
+            with open(path_to_transcript, 'r', encoding='utf-8') as file:
+                transcript = json.load(file)
+            transcript_segments = transcript['segments']
+            transcript_formatted = ""
+            for segment in transcript_segments:
+                start_time = convert_seconds_to_hms(segment['start'])
+                end_time = convert_seconds_to_hms(segment['end'])
+                text = segment['text']
+                transcript_formatted += f"[{start_time} - {end_time}] {text}\n"
+            user_message['content'].append({
+                "type": "text",
+                "text": f"Die Audiotranskription der Vorlesung ist: \n{transcript_formatted}"
+            })
+        if use_video:
+            path, _ = os.path.splitext(path_to_transcript)
+            if not os.path.exists(path + ".mp4"):
+                raise Exception("Video is not available.")
+            if path not in self.video_frames_storage:
+                self.video_frames_storage[path] = extract_video_frames(path + ".mp4", API.FRAME_INTERVAL_IN_SECONDS)
+            user_message['content'].extend([
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f'data:image/jpg;base64,{frame}',
+                        "detail": "low"
+                    }
+                } for frame in self.video_frames_storage[path]
+            ])
+        return user_message

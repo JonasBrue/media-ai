@@ -24,14 +24,15 @@ class Controller:
             messagebox.showerror("Eingabe Fehler", "Bitte gib einen gültigen Link an.")
             return
         self.view.toggle_button_state()
-        threading.Thread(target=self._process_video_thread, args=(url,)).start()
+        use_api = self.view.use_api_to_transcribe.get()
+        threading.Thread(target=self._process_video_thread, args=(use_api, url)).start()
 
-    def _process_video_thread(self, url):
+    def _process_video_thread(self, use_api, url):
         """
         Processes the video in a separate thread, to avoid blocking the UI.
         """
         try:
-            self.model.transcribe(url)
+            self.model.transcribe(use_api, url)
             self.view.check_transcript_checkbox()
             messagebox.showinfo("Erfolgreich", "Transkript angefertigt. Chatbot bereit.")
         except Exception as e:

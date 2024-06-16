@@ -24,20 +24,36 @@ class View(ThemedTk):
 
         # Video
         self.input_frame = ttk.Frame(self)
-        self.input_frame.grid(row=0, column=0, columnspan=5, padx=10, pady=10)
+        self.input_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        self.input_frame.grid_columnconfigure(1, weight=1)
 
-        self.input_video_label = ttk.Label(self.input_frame, text="Vorlesung:")
-        self.input_video_label.grid(row=0, column=0, padx=10, pady=10)
+        self.input_video_label = ttk.Label(self.input_frame, text="1. Vorlesung wählen:")
+        self.input_video_label.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
-        self.input_video_entry = ttk.Entry(self.input_frame, width=35, font=self.font)
-        self.input_video_entry.grid(row=0, column=1, columnspan=2, padx=10, pady=10)
+        self.input_video_entry = ttk.Entry(self.input_frame, font=self.font)
+        self.input_video_entry.grid(row=0, column=1, columnspan=2, padx=(10,1), pady=10, sticky="ew")
         self.set_placeholder_text(self.input_video_entry, "Youtube-Link oder Dateipfad eingeben...")
 
-        self.select_video_button = ttk.Button(self.input_frame, text="Datei auswählen", command=self.select_video)
-        self.select_video_button.grid(row=0, column=3, padx=5, pady=10)
+        self.select_video_button = ttk.Button(self.input_frame, text="Dateipfad auswählen", command=self.select_video)
+        self.select_video_button.grid(row=0, column=3, padx=(1,10), pady=10, sticky="ew")
 
-        self.analyse_video_button = ttk.Button(self.input_frame, text="Analysieren")
-        self.analyse_video_button.grid(row=0, column=4, padx=5, pady=10)
+        self.computation_selection_label = ttk.Label(self.input_frame, text="2. Transkript generieren:")
+        self.computation_selection_label.grid(row=1, column=0, padx=10, pady=10, sticky="ew")
+
+        self.use_api_to_transcribe = tk.BooleanVar(value=False)
+        self.local_computation_radiobutton = ttk.Radiobutton(self.input_frame, text="Deine Hardware nutzen",
+                                                             variable=self.use_api_to_transcribe, value=False)
+        self.local_computation_radiobutton.grid(row=1, column=1, padx=(10,1), pady=10, sticky="w")
+
+        self.api_computation_radiobutton = ttk.Radiobutton(self.input_frame, text="OpenAI-Server verwenden",
+                                                           variable=self.use_api_to_transcribe, value=True)
+        self.api_computation_radiobutton.grid(row=1, column=2, padx=(1,1), pady=10, sticky="w")
+
+        self.analyse_video_button = ttk.Button(self.input_frame, text="Starten")
+        self.analyse_video_button.grid(row=1, column=3, padx=(1,10), pady=10, sticky="ew")
+
+
+
 
         # Chat Window
         self.window_frame = ttk.Frame(self)
@@ -45,7 +61,7 @@ class View(ThemedTk):
         self.window_frame.grid_rowconfigure(0, weight=1)
         self.window_frame.grid_columnconfigure(0, weight=1)
 
-        self.chat_window_text = tk.Text(self.window_frame, width=75, state='disabled', wrap='word', font=self.font)
+        self.chat_window_text = tk.Text(self.window_frame, width=85, state='disabled', wrap='word', font=self.font)
         self.chat_window_text.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="ns")
 
         self.chat_scrollbar = ttk.Scrollbar(self.window_frame, orient=tk.VERTICAL, command=self.chat_window_text.yview)
@@ -70,7 +86,8 @@ class View(ThemedTk):
         self.use_transcript_check.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
 
         self.use_video_var = tk.BooleanVar()
-        self.use_video_check = ttk.Checkbutton(self.message_frame, text=" Videoabschnitte anhängen (Ressourcenintensiv)",
+        self.use_video_check = ttk.Checkbutton(self.message_frame,
+                                               text=" Videoabschnitte anhängen (Ressourcenintensiv)",
                                                variable=self.use_video_var)
         self.use_video_check.grid(row=1, column=2, columnspan=2, padx=10, pady=10)
 
