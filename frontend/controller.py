@@ -35,12 +35,12 @@ class Controller:
         try:
             self.model.transcribe(backend_id, url)
             self.view.check_transcript_checkbox()
+            costs = self.model.calculate_costs()
+            self.view.display_api_usage_costs(costs)
             messagebox.showinfo("Erfolgreich", "Transkript angefertigt. Chatbot bereit.")
         except Exception as e:
             messagebox.showerror("Fehler", str(e))
         finally:
-            costs = self.model.calculate_costs()
-            self.view.display_api_usage_costs(costs)
             self.view.toggle_button_state()
 
     def send_message(self):
@@ -67,16 +67,14 @@ class Controller:
         try:
             response = self.model.chat(backend_id, user_input, use_transcript, use_video)
             self.view.display_message("Bot: " + response)
+            costs = self.model.calculate_costs()
+            self.view.display_api_usage_costs(costs)
         except Exception as e:
             messagebox.showerror("Fehler", str(e))
             self.view.display_message("Bot: Fehler, versuchs nochmal.")
         finally:
-            costs = self.model.calculate_costs()
-            self.view.display_api_usage_costs(costs)
             self.view.toggle_button_state()
 
     def clear_chat(self):
-        self.view.toggle_button_state()
         threading.Thread(target=self.model.clear_chat, args=()).start()
         self.view.clear_chat()
-        self.view.toggle_button_state()

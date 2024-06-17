@@ -18,12 +18,16 @@ class Model:
         """
         Transcribe audio from video input
         """
+        if backend_id not in self.backends:
+            raise Exception(f"Das Backend existiert nicht: {backend_id}")
         self.path_to_transcript = self.backends[backend_id].transcribe(video_input)
 
     def chat(self, backend_id, user_input, use_transcript, use_video):
         """
         Generate a chat response to the users input, optionally including the transcript and video.
         """
+        if backend_id not in self.backends:
+            raise Exception(f"Das Backend existiert nicht: {backend_id}")
         return self.backends[backend_id].chat(user_input, self.path_to_transcript, use_transcript, use_video)
 
     def clear_chat(self):

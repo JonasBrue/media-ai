@@ -47,6 +47,7 @@ class LOCAL:
                     json.dump(transcript_response, file, ensure_ascii=False, indent=4)
                 logging.info("Erfolgreiche Transkription.")
             except Exception:
+                logging.info("Transkription fehlgeschlagen.")
                 raise Exception("Transkription fehlgeschlagen. Versuchen Sie den OpenAI-Server zu verwenden.")
 
         return path_to_transcript
@@ -57,19 +58,20 @@ class LOCAL:
         Optionally including the transcript and video frames.
         """
         logging.info("Antworte auf Benutzereingabe ...")
-        messages = "Du bist ein hilfreicher Assistent, der Fragen von Studenten zu Vorlesungen beantwortet. "
+        messages = "Du bist ein hilfreicher Assistent, der Fragen von Studenten zu Vorlesungen beantwortet."
         if self.chat_history:
-            messages += " Dies war der bisherige Chatverlauf:".join(self.chat_history)
-            messages += " Ende des Chatverlaufs. Nun folgt die Frage."
+            messages += " " + " ".join(self.chat_history)
 
         messages += self._add_content(path_to_transcript, use_transcript, use_video)
 
         if user_input:
-            messages += f"USER: {user_input} ASSISTANT:"
+            messages += f" USER: {user_input} ASSISTANT:"
 
+        print(messages)
         response = self.chatbot.generate(prompt=messages)
-        self.chat_history.append(" USER: " + user_input)
-        self.chat_history.append(" ASSISTANT: " + response)
+        self.chat_history.append("USER: " + user_input)
+        self.chat_history.append("ASSISTANT: " + response)
+        print(self.chat_history)
         logging.info("Erfolgreich geantwortet.")
         return response
 
@@ -97,7 +99,7 @@ class LOCAL:
                 end_time = convert_seconds_to_hms(segment['end'])
                 text = segment['text']
                 transcript_formatted += f"[{start_time} - {end_time}] {text}\n"
-            content += f"Die Audiotranskription der Vorlesung ist: \n{transcript_formatted}"
+            content += f" Die Audiotranskription der Vorlesung ist: \n{transcript_formatted}"
         if use_video:
             raise Exception("Der lokale Chatbot kann keine Videoabschnitte verarbeiten.")
         return content

@@ -18,7 +18,8 @@ class API:
         load_dotenv()
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
-            raise Exception("API-Schlüssel nicht gefunden. Setzen den API-Schlüssel OPENAI_API_KEY in der .env-Datei.")
+            logging.error("API-Schlüssel nicht gefunden. Setze den API-Schlüssel OPENAI_API_KEY in der .env-Datei.")
+            raise Exception("API-Schlüssel nicht gefunden. Setze den API-Schlüssel OPENAI_API_KEY in der .env-Datei.")
         self.client = OpenAI(api_key=api_key)
         self.chatbot_output_tokens_used = 0
         self.chatbot_input_tokens_used = 0
