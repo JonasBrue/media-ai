@@ -8,12 +8,15 @@ from backend.utils import convert_to_audio, convert_seconds_to_hms
 
 
 class LOCAL:
+    """
+    Manages local processing for transcription and chatbot functions using GPT4All and Whisper models.
+    """
     MODEL_CHATBOT = "em_german_mistral_v01.Q4_0.gguf"
     MODEL_TRANSCRIBER = "base"  # available: tiny, base, small, medium or large
 
     def __init__(self):
         """
-        Loading transcriber and chatbot model.
+        Initialize models for transcription and chatbot, set device to GPU if available.
         """
         if torch.cuda.is_available():
             device = "cuda"
@@ -55,7 +58,7 @@ class LOCAL:
     def chat(self, user_input, path_to_transcript, use_transcript, use_video):
         """
         Generates a chat response based on user input.
-        Optionally including the transcript and video frames.
+        Optionally including the transcript.
         """
         logging.info("Antworte auf Benutzereingabe ...")
         messages = "Du bist ein hilfreicher Assistent, der Fragen von Studenten zu Vorlesungen beantwortet."
@@ -76,10 +79,16 @@ class LOCAL:
         return response
 
     def clear_chat(self):
+        """
+        Clear the chat history.
+        """
         self.chat_history = []
         logging.info("Chat-Verlauf gelöscht.")
 
     def calculate_costs(self):
+        """
+        Return the accumulated costs. It is always 0 for the local class.
+        """
         return self.costs
 
     def _add_content(self, path_to_transcript, use_transcript, use_video):

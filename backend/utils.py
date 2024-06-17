@@ -13,6 +13,7 @@ import logging
 def convert_to_audio(user_input):
     """
     Converts the video input to a valid audio format, either by downloading from YouTube or converting video to audio.
+    Accepts YouTube URLs or local .mp4 files.
     """
     if "youtube." in user_input or "youtu.be" in user_input:
         path_to_video = download_youtube_video(user_input)
@@ -28,7 +29,7 @@ def convert_to_audio(user_input):
 
 def video_to_audio(path_to_video):
     """
-    Converts a video file to an audio file.
+    Converts a video file to an audio file in .mp3-format.
     """
     logging.info("Umwandlung von Video in Audio ...")
     path_to_audio = path_to_video.replace(".mp4", ".mp3")
@@ -46,7 +47,7 @@ def video_to_audio(path_to_video):
 
 def download_youtube_video(url):
     """
-    Downloads the audio from a YouTube video.
+    Downloads a YouTube video and saves it as a .mp4 file.
     """
     try:
         yt = pytube.YouTube(url)
@@ -91,7 +92,7 @@ def convert_seconds_to_hms(seconds):
 
 def extract_video_frames(path_to_video, extracted_frames_amount):
     """
-    Extracts frames from a video at specified intervals and encodes them to base64.
+    Extracts a specified amount of frames from a video and encodes them to base64.
     """
     logging.info("Extrahiere Video-Bilder ...")
     video = cv2.VideoCapture(path_to_video)

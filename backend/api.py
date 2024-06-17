@@ -7,6 +7,9 @@ from backend.utils import convert_to_audio, convert_seconds_to_hms, extract_vide
 
 
 class API:
+    """
+    Handles interaction with OpenAI's GPT and Whisper models for transcription and chatbot functions.
+    """
     MODEL_CHATBOT = "gpt-4o"
     MODEL_TRANSCRIBER = "whisper-1"
     EXTRACTED_FRAMES_AMOUNT = 10
@@ -100,10 +103,16 @@ class API:
         return assistant_response
 
     def clear_chat(self):
+        """
+        Clears the chat history.
+        """
         self.chat_history = []
         logging.info("Chat-Verlauf gelöscht.")
 
     def calculate_costs(self):
+        """
+        Calculates the total cost of API usage.
+        """
         cost1 = self.chatbot_input_tokens_used * (5 / 1000000)  # 5,00 $ / 1M tokens
         cost2 = self.chatbot_output_tokens_used * (15 / 1000000)  # 15,00 $ / 1M tokens
         cost3 = self.transcriber_total_duration_in_seconds * (0.006 / 60)  # $0.006 / minute

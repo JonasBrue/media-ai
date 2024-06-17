@@ -3,21 +3,23 @@ from tkinter import messagebox
 
 
 class Controller:
+    """
+    The Controller class handles user interactions and updates the View and Model accordingly.
+    """
 
     def __init__(self, view, model):
         """
-        The Controller class handles user interactions and updates the View and Model accordingly.
+        Initialize Controller with View and Model, setting up button commands.
         """
         self.view = view
         self.model = model
-        # Set up UI button commands
         self.view.analyse_video_button.config(command=self.analyse_video)
         self.view.send_message_button.config(command=self.send_message)
         self.view.clear_chat_button.config(command=self.clear_chat)
 
     def analyse_video(self):
         """
-        Starts the video analysis process, validating input and starting a new thread.
+        Start video analysis, validate input, and process in a new thread.
         """
         url = self.view.input_video_entry.get()
         if not url or url == "Youtube-Link oder Dateipfad eingeben...":
@@ -76,5 +78,8 @@ class Controller:
             self.view.toggle_button_state()
 
     def clear_chat(self):
+        """
+        Clear the chat history and UI.
+        """
         threading.Thread(target=self.model.clear_chat, args=()).start()
         self.view.clear_chat()

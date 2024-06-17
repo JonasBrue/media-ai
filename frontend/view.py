@@ -115,7 +115,6 @@ class View(ThemedTk):
         """
         Sets a placeholder in the given entry widget.
         """
-
         def clear_placeholder(event):
             if event.widget.get() == placeholder:
                 event.widget.delete(0, tk.END)
@@ -179,11 +178,14 @@ class View(ThemedTk):
 
     def display_api_usage_costs(self, costs):
         """
-        Displays the API usage costs in the costs label.
+        Displays the usage costs in the costs label.
         """
         self.costs_label.config(text=f"Server-Kosten: ${costs:.2f}")
 
     def confirm_data_privacy_transcriber(self):
+        """
+        Confirms data privacy for transcription.
+        """
         if not self.confirmed_data_privacy_transcriber:
             confirmation = messagebox.askyesno("Datenübertragung an OpenAI",
                                                "Wenn Sie fortfahren, werden Ihre Video- und Audiodaten an OpenAI zur "
@@ -196,7 +198,10 @@ class View(ThemedTk):
             else:
                 self.use_backend_to_transcribe.set("local")
 
-    def  confirm_data_privacy_chatbot(self):
+    def confirm_data_privacy_chatbot(self):
+        """
+        Confirms data privacy for chatbot.
+        """
         if not self.confirmed_data_privacy_chatbot:
             confirmation = messagebox.askyesno("Datenübertragung an OpenAI",
                                                "Wenn Sie fortfahren, werden Ihre Texteingaben und Transkriptionsdaten "

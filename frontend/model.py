@@ -4,7 +4,7 @@ from backend.local import LOCAL
 
 class Model:
     """
-    The Model class handles the data logic and interacts with the API.
+    The Model class handles the data logic and interacts with the backend.
     """
 
     def __init__(self):
@@ -16,7 +16,7 @@ class Model:
 
     def transcribe(self, backend_id, video_input):
         """
-        Transcribe audio from video input
+        Transcribe audio from video input using the specified backend.
         """
         if backend_id not in self.backends:
             raise Exception(f"Das Backend existiert nicht: {backend_id}")
@@ -32,13 +32,13 @@ class Model:
 
     def clear_chat(self):
         """
-        Clear the chat history
+        Clears the chat history for all backends.
         """
         for backend in self.backends.values():
             backend.clear_chat()
 
     def calculate_costs(self):
         """
-        Calculate costs
+        Clears the chat history for all backends.
         """
         return sum(backend.calculate_costs() for backend in self.backends.values())
