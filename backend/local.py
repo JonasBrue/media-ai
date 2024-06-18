@@ -70,11 +70,9 @@ class LOCAL:
         if user_input:
             messages += f" USER: {user_input} ASSISTANT:"
 
-        print(messages)
         response = self.chatbot.generate(prompt=messages)
         self.chat_history.append("USER: " + user_input)
         self.chat_history.append("ASSISTANT: " + response)
-        print(self.chat_history)
         logging.info("Erfolgreich geantwortet.")
         return response
 
