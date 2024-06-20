@@ -1,73 +1,72 @@
-# media-ai
+# Vorlesungsassistent
 
-A brief description of the project goes here.
+Der Vorlesungsassistent ist eine KI-basierte Anwendung zur Aufbereitung von Vorlesungsvideos. Das Projekt nutzt moderne KI-Technologien, um Vorlesungen zu transkribieren und ermöglicht es Nutzern, mit einem Chatbot zu interagieren, um Fragen zu den Vorlesungsinhalten zu stellen. Die Anwendung ist in Python programmiert und verwendet ein Model-View-Controller (MVC) Designmuster.
 
-## Requirements
+## Voraussetzungen
 
-- Windows 10 or higher
-- Python 3.8 or higher
+- Windows 10 oder höher
+- Python 3.8 oder höher
 - [ffmpeg](https://ffmpeg.org/)
 
 ## Setup
 
-Follow these steps to set up the project on your local machine:
+Folgen Sie diesen Schritten, um das Projekt auf Ihrem lokalen Rechner einzurichten:
 
-__1. Clone and open the repository:__
+__1. Klonen und öffnen Sie das Repository:__
 
 ```bash
 git clone https://github.com/JonasBrue/media-ai.git
 cd media-ai
 ```
 
-__2. Create the Virtual Environment:__
+__2. Erstellen Sie die virtuelle Umgebung:__
 
 ```bash
 python -m venv media-ai-venv
 ```
 
-__3. Activate the Virtual Environment:__
+__3. Aktivieren Sie die virtuelle Umgebung:__
 
 ```bash
 .\media-ai-venv\Scripts\activate
 ```
 
-__4. Verify the Virtual Environment Activation:__
+__4. Überprüfen Sie die Aktivierung der virtuellen Umgebung:__
 
-Run the following command to verify that you are in the virtual environment:
+Führen Sie den folgenden Befehl aus, um zu überprüfen, ob Sie sich in der virtuellen Umgebung befinden:
 ```bash
 python -c "import sys; print(sys.prefix)"
 ```
-The output should include "media-ai-venv" at the end. If not, refer to the Troubleshooting section 1.
+Die Ausgabe sollte am Ende "media-ai-venv" enthalten. Ist dies nicht der Fall, lesen Sie den Abschnitt Fehlerbehebung 1.
 
-__4. Install the dependencies:__
+__4. Installieren Sie die Abhängigkeiten:__
 
 ```bash
 pip install -r requirements.txt
 ```
 
-__5. Set the environment variables:__
+__5. Setzen Sie die Umgebungsvariablen:__
 
-Edit the .env file and add your API key.
-OPENAI_API_KEY=your_openai_api_key_here
+Bearbeiten Sie die .env-Datei und fügen Sie Ihren API-Schlüssel ein.
+OPENAI_API_KEY=openai_api_schlüssel_hier
 
-__6. Execute the script:__
+__6. Ausführen der Anwendung:__
 
 ```bash
 python main.py
 ```
 
-## Troubleshooting
+## Fehlerbehebung
 
-__1. Virtual Environment Activation Failed:__
+__1. Aktivierung der virtuellen Umgebung fehlgeschlagen:__
 
-For PowerShell, you might need to adjust the execution policy:
-
+Für PowerShell müssen Sie möglicherweise die Ausführungsrichtlinie anpassen:
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-Then activate using the command in Step 3. or this command:
+Aktivieren Sie dann mit dem Befehl in Schritt 3. oder mit diesem Befehl:
 ```powershell
 .\media-ai-venv\Scripts\Activate.ps1
 ```
-If you still encounter issues, try using the Command Prompt (cmd.exe) instead of PowerShell.
+Wenn Sie weiterhin Probleme haben, versuchen Sie, die Eingabeaufforderung (cmd.exe) anstelle von PowerShell zu verwenden.
