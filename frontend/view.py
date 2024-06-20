@@ -187,12 +187,25 @@ class View(ThemedTk):
         Confirms data privacy for transcription.
         """
         if not self.confirmed_data_privacy_transcriber:
-            confirmation = messagebox.askyesno("Datenübertragung an OpenAI",
-                                               "Wenn Sie fortfahren, werden Ihre Video- und Audiodaten an OpenAI zur "
-                                               "Transkription gesendet. "
-                                               "Sie sind verantwortlich für die Weitergabe dieser Daten "
-                                               "und die Einhaltung der Datenschutzrichtlinien. "
-                                               "Wollen Sie fortfahren?")
+            confirmation = messagebox.askyesno("Einwilligung zur Datenübertragung an OpenAI",
+                                               "Bevor Sie fortfahren, beachten Sie bitte Folgendes:\n\n"
+                                               "Ihre Audiodaten werden an OpenAI zur Transkription gesendet. "
+                                               "Dies bedeutet, dass die von Ihnen bereitgestellten Daten ihr System "
+                                               "verlassen und an einen externen Dienstleister übermittelt werden.\n\n"
+                                               "Wichtige Hinweise:\n\n"
+                                               "1. Datenverantwortung: Sie tragen die Verantwortung für alle Daten, "
+                                               "die Sie übermitteln. Stellen Sie sicher, dass Sie die Rechte an diesen "
+                                               "Daten besitzen und dass keine Urheberrechte verletzt werden.\n\n"
+                                               "2. Datenschutz: Durch die Übermittlung Ihrer Daten erklären Sie sich "
+                                               "mit der Weiterleitung an Dritte einverstanden. Die Einhaltung der "
+                                               "Datenschutzrichtlinien liegt in Ihrer Verantwortung.\n\n"
+                                               "3. Haftung: Der Betreiber des Systems übernimmt keine Haftung für "
+                                               "eventuelle Datenschutzverletzungen, die aus der Übermittlung Ihrer "
+                                               "Daten resultieren.\n\n"
+                                               "Indem Sie fortfahren, bestätigen Sie, dass Sie die oben "
+                                               "genannten Bedingungen gelesen und verstanden haben und "
+                                               "mit der Übertragung Ihrer Daten einverstanden sind.\n\n"
+                                               "Möchten Sie fortfahren?")
             if confirmation:
                 self.confirmed_data_privacy_transcriber = True
             else:
@@ -203,12 +216,26 @@ class View(ThemedTk):
         Confirms data privacy for chatbot.
         """
         if not self.confirmed_data_privacy_chatbot:
-            confirmation = messagebox.askyesno("Datenübertragung an OpenAI",
-                                               "Wenn Sie fortfahren, werden Ihre Texteingaben und Transkriptionsdaten "
-                                               "an OpenAI gesendet, um eine Chat-Antwort zu generieren. "
-                                               "Sie sind verantwortlich für die Weitergabe dieser Daten "
-                                               "und die Einhaltung der Datenschutzrichtlinien. "
-                                               "Wollen Sie fortfahren?")
+            confirmation = messagebox.askyesno("Einwilligung zur Datenübertragung an OpenAI",
+                                               "Bevor Sie fortfahren, beachten Sie bitte Folgendes:\n\n"
+                                               "Ihre Texteingaben, Transkripte sowie eventuell Videoabschnitte "
+                                               "werden an OpenAI gesendet, um eine Chat-Antwort zu generieren. "
+                                               "Dies bedeutet, dass die von Ihnen bereitgestellten Daten ihr System "
+                                               "verlassen und an einen externen Dienstleister übermittelt werden.\n\n"
+                                               "Wichtige Hinweise:\n\n"
+                                               "1. Datenverantwortung: Sie tragen die Verantwortung für alle Daten, "
+                                               "die Sie übermitteln. Stellen Sie sicher, dass Sie die Rechte an diesen "
+                                               "Daten besitzen und dass keine Urheberrechte verletzt werden.\n\n"
+                                               "2. Datenschutz: Durch die Übermittlung Ihrer Daten erklären Sie sich "
+                                               "mit der Weiterleitung an Dritte einverstanden. Die Einhaltung der "
+                                               "Datenschutzrichtlinien liegt in Ihrer Verantwortung.\n\n"
+                                               "3. Haftung: Der Betreiber des Systems übernimmt keine Haftung für "
+                                               "eventuelle Datenschutzverletzungen, die aus der Übermittlung Ihrer "
+                                               "Daten resultieren.\n\n"
+                                               "Indem Sie fortfahren, bestätigen Sie, dass Sie die oben "
+                                               "genannten Bedingungen gelesen und verstanden haben und "
+                                               "mit der Übertragung Ihrer Daten einverstanden sind.\n\n"
+                                               "Möchten Sie fortfahren?")
             if confirmation:
                 self.confirmed_data_privacy_chatbot = True
             else:
