@@ -48,8 +48,9 @@ class TestUtils(unittest.TestCase):
 
     @patch("pytube.YouTube")
     @patch("os.path.exists")
+    @patch("os.makedirs")
     @patch("os.rename")
-    def test_download_youtube_video(self, m_rename, m_exists, m_youtube):
+    def test_download_youtube_video(self, m_rename, m_makedirs, m_exists, m_youtube):
         m_exists.return_value = False
         m_yt = m_youtube.return_value
         m_yt.video_id = "ABC"
@@ -59,7 +60,8 @@ class TestUtils(unittest.TestCase):
         result = download_youtube_video("https://www.youtube.com/watch?v=ABC")
         self.assertEqual(result, "./storage/youtube-ABC.mp4")
         m_youtube.assert_called_once_with("https://www.youtube.com/watch?v=ABC")
-        m_exists.assert_called_once_with("./storage/youtube-ABC.mp4")
+        m_exists.assert_called()
+        m_makedirs.assert_called_once_with("./storage/")
         m_rename.assert_called_once_with("path/to/name_of_video.mp4", "./storage/youtube-ABC.mp4")
 
     def test_convert_seconds_to_hms(self):
@@ -96,11 +98,14 @@ class TestUtils(unittest.TestCase):
         m_video.release.assert_called_once_with()
         m_encode.assert_called()
 
+    @patch("os.path.exists")
+    @patch("os.makedirs")
     @patch("backend.utils.datetime")
     @patch("builtins.open")
     @patch("backend.utils.json.dump")
     @patch("backend.utils.logging.info")
-    def test_log_api_response(self, m_info, m_dump, m_open, m_datetime):
+    def test_log_api_response(self, m_info, m_dump, m_open, m_datetime, m_makedirs, m_exists):
+        m_exists.return_value = False
         m_datetime.datetime.now.return_value = datetime.datetime(2000, 1, 1, 1, 0, 0)
         m_datetime.datetime.strftime.return_value = "2000-01-01-01-00-00"
         m_completion = MagicMock()
@@ -154,6 +159,8 @@ class TestUtils(unittest.TestCase):
         }
         log_api_response(m_completion)
 
+        m_exists.assert_called_once_with("./log/")
+        m_makedirs.assert_called_once_with("./log/")
         m_open.assert_called_once_with("./log/api-response-2000-01-01-01-00-00.json", "w", encoding="utf-8")
         m_dump.assert_called_once_with(expected_data, m_open().__enter__(), ensure_ascii=False, indent=4)
         m_info.assert_called_once_with("API-Antwort gespeichert unter: ./log/api-response-2000-01-01-01-00-00.json")
